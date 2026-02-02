@@ -1,0 +1,5 @@
+[tools]
+## https://mise-versions.jdx.dev/tools/python
+python = "3.14.2"
+## https://mise-versions.jdx.dev/tools/black
+"aqua:psf/black" = "latest"
