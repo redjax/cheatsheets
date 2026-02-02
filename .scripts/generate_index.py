@@ -364,20 +364,37 @@ def apply_template(root: Path, toc: str, body: str, template_path: Path) -> str:
             ## If no {{body}} placeholder, append body after toc
             content = f"{content}\n\n{body}\n"
 
-        return content
+        # Normalize spacing to avoid accidental double blank lines
+        return normalize_content(content)
 
     ## Fallback minimal content
-    return (
+    content = (
         f"---\n"
         f'title: "Cheatsheets Index"\n'
         f'last_updated: "{datetime.date.today().isoformat()}"\n'
         f"---\n\n"
         f"## Table of Contents <!-- omit in toc -->\n\n{toc}\n\n{body}\n"
     )
+    return normalize_content(content)
 
 
 def write_index(output_path: Path, content: str) -> None:
     output_path.write_text(content, encoding="utf-8")
+
+
+def normalize_content(text: str) -> str:
+    """Collapse excessive blank lines and ensure a single trailing newline.
+
+    - Converts Windows CRLF to LF for consistency
+    - Collapses 3+ consecutive newlines to a single blank line (2 newlines)
+    - Trims trailing whitespace/newlines and ensures the file ends with one newline
+    """
+    # Normalize newlines
+    text = text.replace("\r\n", "\n")
+    # Collapse multiple blank lines
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    # Ensure single trailing newline
+    return text.rstrip() + "\n"
 
 
 def main():
