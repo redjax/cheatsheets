@@ -164,14 +164,39 @@ def read_front_matter(path: Path) -> Dict[str, object]:
 
 
 def display_name_for_file(path: Path) -> str:
+    # Prefer the first H1 heading in the document for previews
+    def extract_h1_title(p: Path) -> Optional[str]:
+        try:
+            text = p.read_text(encoding="utf-8")
+        except Exception:
+            return None
+        lines = text.splitlines()
+        i = 0
+        # Skip front matter if present
+        if i < len(lines) and lines[i].strip() == "---":
+            i += 1
+            while i < len(lines) and lines[i].strip() != "---":
+                i += 1
+            if i < len(lines) and lines[i].strip() == "---":
+                i += 1
+        # Find first top-level heading
+        while i < len(lines):
+            line = lines[i].strip()
+            if line.startswith("# "):
+                return line[2:].strip()
+            i += 1
+        return None
+
+    h1 = extract_h1_title(path)
+    if h1:
+        return h1
+
     fm = read_front_matter(path)
     title = fm.get("title")
-
     if isinstance(title, str) and title.strip():
         return title
 
     stem = path.stem.replace("_", " ").replace("-", " ")
-
     return stem.title()
 
 
