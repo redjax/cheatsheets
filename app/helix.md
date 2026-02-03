@@ -10,8 +10,15 @@ tags: ["helix", "app", "cli", "tui"]
 
 ## Usage
 
-Run `hx --tutor` to see Helix's built-in tutorial.
+**Helix [config file paths](https://docs.helix-editor.com/configuration.html)**:
 
+- Linux: `~/.config/helix/config.toml`
+- Windows: `$env:APPDATA\helix\config.toml`
+- Mac: `~/.config/helix/config.toml`
+
+**Keybinds/commands**:
+
+- `hx --tutor`: Start Helix's built-in tutorial.
 - `hjkl`/arrow keys: Move cursor around.
 - `d`: Delete the character under the cursor.
 - `o`: Start a new line below the current line and enter insert mode.
