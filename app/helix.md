@@ -10,8 +10,15 @@ tags: ["helix", "app", "cli", "tui"]
 
 ## Usage
 
-Run `hx --tutor` to see Helix's built-in tutorial.
+**Helix [config file paths](https://docs.helix-editor.com/configuration.html)**:
 
+- Linux: `~/.config/helix/config.toml`
+- Windows: `$env:APPDATA\helix\config.toml`
+- Mac: `~/.config/helix/config.toml`
+
+**Keybinds/commands**:
+
+- `hx --tutor`: Start Helix's built-in tutorial.
 - `hjkl`/arrow keys: Move cursor around.
 - `d`: Delete the character under the cursor.
 - `o`: Start a new line below the current line and enter insert mode.
@@ -79,10 +86,10 @@ Run `hx --tutor` to see Helix's built-in tutorial.
 
       ```markdown
           | FRUIT   | AMOUNT |
-          |---------|--------|
-      | Apples  | 8      |
+          | ------- | ------ |
+          | Apples  | 8      |
           | Bananas | 6      |
-      | Oranges | 3      |
+          | Oranges | 3      |
           | Donuts  | 4      |
       ```
 
@@ -165,3 +172,9 @@ Run `hx --tutor` to see Helix's built-in tutorial.
 - `` ` ``: Set all selected characters to lowercase.
 - `` Alt + ` ``: Set all selected characters to uppercase.
 - `CTRL + C`: Comment/uncomment a line.
+
+## Links
+
+- [Helix editor home](https://helix-editor.com)
+- [Helix docs](https://docs.helix-editor.com)
+- [Helix Github](https://github.com/helix-editor/helix)
