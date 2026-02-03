@@ -4,8 +4,9 @@ last_updated: "{{last_updated}}"
 tags: ["app", {{tags}}]
 ---
 
-# {{title}}
+# {{title}} <!-- omit in toc -->
 
 ## About
 
 {{description}}
+
