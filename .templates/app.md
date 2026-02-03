@@ -9,3 +9,11 @@ tags: ["app", {{tags}}]
 ## About
 
 {{description}}
+
+## Usage
+
+## Examples
+
+## Troubleshooting
+
+## Links
