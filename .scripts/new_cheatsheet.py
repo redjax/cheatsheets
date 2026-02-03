@@ -1,8 +1,8 @@
-
 import sys
 import datetime
 import argparse
 from pathlib import Path
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -10,26 +10,45 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawTextHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python new_cheatsheet.py apps my-new-app\n"
+            "  python new_cheatsheet.py app my-new-app\n"
             "  python new_cheatsheet.py --title 'My App' --description 'Cheatsheet' --tags cli,app\n"
             "  python new_cheatsheet.py  # prompts for inputs\n"
         ),
     )
 
     # Optional positional arguments for category and name
-    parser.add_argument("category", nargs="?", help="Cheatsheet category (e.g., 'apps', 'languages').")
-    parser.add_argument("name", nargs="?", help="New cheatsheet name (without extension).")
+    parser.add_argument(
+        "category",
+        nargs="?",
+        help="Cheatsheet category (e.g., 'app', 'command', 'language').",
+    )
+    parser.add_argument(
+        "name", nargs="?", help="New cheatsheet name (without extension)."
+    )
 
     # Optional metadata flags (skips prompts if provided)
     parser.add_argument("--title", dest="title", help="Title to use in the cheatsheet.")
-    parser.add_argument("--description", dest="description", help="Description to use in the cheatsheet.")
-    parser.add_argument("--tags", dest="tags", help="Comma-separated additional tags (e.g., cli,tool).")
+    parser.add_argument(
+        "--description",
+        dest="description",
+        help="Description to use in the cheatsheet.",
+    )
+    parser.add_argument(
+        "--tags", dest="tags", help="Comma-separated additional tags (e.g., cli,tool)."
+    )
 
     args = parser.parse_args()
-    
+
     return args
 
-def create_new_cheatsheet(category: str, name: str, title: str | None = None, description: str | None = None, tags_input: str | None = None):
+
+def create_new_cheatsheet(
+    category: str,
+    name: str,
+    title: str | None = None,
+    description: str | None = None,
+    tags_input: str | None = None,
+):
     """Creates a new cheatsheet from a template.
 
     Params:
@@ -66,7 +85,9 @@ def create_new_cheatsheet(category: str, name: str, title: str | None = None, de
         "{{title}}": title,
         "{{description}}": description,
         "{{last_updated}}": datetime.date.today().isoformat(),
-        "{{tags}}": ", ".join(f'"{tag.strip()}"' for tag in tags_input.split(",") if tag.strip())
+        "{{tags}}": ", ".join(
+            f'"{tag.strip()}"' for tag in tags_input.split(",") if tag.strip()
+        ),
     }
 
     ## Read template and replace placeholders
@@ -81,6 +102,7 @@ def create_new_cheatsheet(category: str, name: str, title: str | None = None, de
 
     print(f"\nSuccessfully created {target_file}")
 
+
 def main():
     args = parse_args()
 
@@ -94,6 +116,7 @@ def main():
         description=args.description,
         tags_input=args.tags,
     )
+
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,7 @@
 ---
 description: "{{description}}"
-last_updated: "{{last_updated}}"
-tags: ["app", {{tags}}]
+last_updated: "{{last_update}}"
+tags: ["language", {{tags}}]
 ---
 
 # {{title}} <!-- omit in toc -->
