@@ -76,10 +76,7 @@ jobs:
       - name: Create archive
         if: steps.check_tag.outputs.exists == 'false' && (github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.has_changes == 'true')
         run: |
-          cd cheatsheets
-          zip -r ../cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip .
-
-          cd ..
+          zip -r cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip cheatsheets/
 
           echo "Created archive: cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip"
           ls -lh cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip
