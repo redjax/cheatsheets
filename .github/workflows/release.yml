@@ -3,6 +3,9 @@ name: Create Release
 
 on:
   workflow_dispatch:
+  schedule:
+    ## Run daily at midnight UTC
+    - cron: '0 0 * * *'
 
 permissions:
   contents: write
@@ -17,6 +20,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check for changes since last release
+        id: check_changes
+        run: |
+          ## Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "No previous releases found - will create first release"
+          else
+            ## Check if there are any changes in cheatsheets/ since the last tag
+            CHANGES=$(git diff --name-only "$LATEST_TAG" HEAD -- cheatsheets/ | wc -l)
+            
+            if [ "$CHANGES" -gt 0 ]; then
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "Found $CHANGES changed file(s) in cheatsheets/ since $LATEST_TAG"
+              git diff --name-only "$LATEST_TAG" HEAD -- cheatsheets/
+            else
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+              echo "No changes in cheatsheets/ since $LATEST_TAG"
+            fi
+          fi
+
+      - name: Skip - No changes detected
+        if: github.event_name == 'schedule' && steps.check_changes.outputs.has_changes == 'false'
+        run: |
+          echo "No changes in cheatsheets/ since last release - skipping release creation"
+          exit 0
+
       - name: Generate release tag
         id: generate_tag
         run: |
@@ -30,6 +62,7 @@ jobs:
           echo "Generated tag: ${TAG}"
 
       - name: Check if tag exists
+        if: github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.has_changes == 'true'
         id: check_tag
         run: |
           if git rev-parse "${{ steps.generate_tag.outputs.tag }}" >/dev/null 2>&1; then
@@ -41,7 +74,7 @@ jobs:
           fi
 
       - name: Create archive
-        if: steps.check_tag.outputs.exists == 'false'
+        if: steps.check_tag.outputs.exists == 'false' && (github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.has_changes == 'true')
         run: |
           cd cheatsheets
           zip -r ../cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip .
@@ -52,7 +85,7 @@ jobs:
           ls -lh cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip
 
       - name: Create and push tag
-        if: steps.check_tag.outputs.exists == 'false'
+        if: steps.check_tag.outputs.exists == 'false' && (github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.has_changes == 'true')
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -63,7 +96,7 @@ jobs:
           echo "Created and pushed tag: ${{ steps.generate_tag.outputs.tag }}"
 
       - name: Create GitHub Release
-        if: steps.check_tag.outputs.exists == 'false'
+        if: steps.check_tag.outputs.exists == 'false' && (github.event_name == 'workflow_dispatch' || steps.check_changes.outputs.has_changes == 'true')
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.generate_tag.outputs.tag }}
