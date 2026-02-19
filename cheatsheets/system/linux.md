@@ -3,6 +3,7 @@ description: "Linux OS."
 last_updated: "2026-02-02"
 tags: ["linux", "system", "os"]
 ---
-## Table of Contents <!-- omit in toc -->
 
-# Linux
+# Linux <!-- omit in toc -->
+
+## Table of Contents <!-- omit in toc -->
