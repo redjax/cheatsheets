@@ -1,6 +1,2 @@
-.env
-*.local
-*.local.*
-
 !*example*.*
 !*.*example*
