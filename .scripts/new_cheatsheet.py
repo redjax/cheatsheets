@@ -58,9 +58,9 @@ def create_new_cheatsheet(
         description (str | None): Optional description; if not provided, will be prompted.
         tags_input (str | None): Optional comma-separated tags; if not provided, will be prompted.
     """
-    cheatsheet_root = Path(__file__).parent
-    template_path = cheatsheet_root / ".templates" / f"{category}.md"
-    target_dir = cheatsheet_root / category
+    repo_root = Path(__file__).parent.parent
+    template_path = repo_root / ".templates" / f"{category}.md"
+    target_dir = repo_root / "cheatsheets" / category
     target_file = target_dir / f"{name}.md"
 
     if not template_path.exists():

@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
-ROOT_DEFAULT = Path(__file__).parent.parent
+ROOT_DEFAULT = Path(__file__).parent.parent / "cheatsheets"
 
 EXCLUDE_FILE_NAMES = {"README.md", "INDEX.md"}
 EXCLUDE_DIR_NAMES = {".git", ".github", ".vscode", ".templates", "__pycache__"}
@@ -164,7 +164,7 @@ def read_front_matter(path: Path) -> Dict[str, object]:
 
 
 def display_name_for_file(path: Path) -> str:
-    # Prefer the first H1 heading in the document for previews
+    ## Prefer the first H1 heading in the document for previews
     def extract_h1_title(p: Path) -> Optional[str]:
         try:
             text = p.read_text(encoding="utf-8")
@@ -172,14 +172,14 @@ def display_name_for_file(path: Path) -> str:
             return None
         lines = text.splitlines()
         i = 0
-        # Skip front matter if present
+        ## Skip front matter if present
         if i < len(lines) and lines[i].strip() == "---":
             i += 1
             while i < len(lines) and lines[i].strip() != "---":
                 i += 1
             if i < len(lines) and lines[i].strip() == "---":
                 i += 1
-        # Find first top-level heading
+        ## Find first top-level heading
         while i < len(lines):
             line = lines[i].strip()
             if line.startswith("# "):
@@ -280,7 +280,8 @@ def render_files_table(files: List[Path], root: Path) -> List[str]:
     lines.append("| --- | --- | --- |")
 
     for f in sorted(files, key=lambda x: display_name_for_file(x).lower()):
-        rel_link = f.relative_to(root).as_posix()
+        ## Calculate relative path from root.parent since INDEX.md is written there
+        rel_link = f.relative_to(root.parent).as_posix()
         name = display_name_for_file(f)
         desc = get_description_for_file(f)
         tags = ", ".join(get_tags_for_file(f))
@@ -364,7 +365,7 @@ def apply_template(root: Path, toc: str, body: str, template_path: Path) -> str:
             ## If no {{body}} placeholder, append body after toc
             content = f"{content}\n\n{body}\n"
 
-        # Normalize spacing to avoid accidental double blank lines
+        ## Normalize spacing to avoid accidental double blank lines
         return normalize_content(content)
 
     ## Fallback minimal content
@@ -389,11 +390,11 @@ def normalize_content(text: str) -> str:
     - Collapses 3+ consecutive newlines to a single blank line (2 newlines)
     - Trims trailing whitespace/newlines and ensures the file ends with one newline
     """
-    # Normalize newlines
+    ## Normalize newlines
     text = text.replace("\r\n", "\n")
-    # Collapse multiple blank lines
+    ## Collapse multiple blank lines
     text = re.sub(r"\n{3,}", "\n\n", text)
-    # Ensure single trailing newline
+    ## Ensure single trailing newline
     return text.rstrip() + "\n"
 
 
@@ -401,11 +402,11 @@ def main():
     args = parse_args()
 
     root = args.root.resolve()
-    output = args.output.resolve() if args.output else (root / "INDEX.md")
+    output = args.output.resolve() if args.output else (root.parent / "INDEX.md")
     toc, body = generate_index_parts(
         root, args.include_dotdirs, args.include_templates, args.include_readme
     )
-    template_path = root / ".templates" / "index.md"
+    template_path = root.parent / ".templates" / "index.md"
     content = apply_template(root, toc, body, template_path)
 
     write_index(output, content)
