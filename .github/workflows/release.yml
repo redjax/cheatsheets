@@ -1,0 +1,89 @@
+---
+name: Create Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate release tag
+        id: generate_tag
+        run: |
+          DATE=$(date +%Y%m%d)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          TAG="${DATE}-${SHORT_SHA}"
+
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Generated tag: ${TAG}"
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "${{ steps.generate_tag.outputs.tag }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.generate_tag.outputs.tag }} already exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.generate_tag.outputs.tag }} does not exist"
+          fi
+
+      - name: Create archive
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          cd cheatsheets
+          zip -r ../cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip .
+
+          cd ..
+
+          echo "Created archive: cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip"
+          ls -lh cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip
+
+      - name: Create and push tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          git tag -a "${{ steps.generate_tag.outputs.tag }}" -m "Release ${{ steps.generate_tag.outputs.tag }}"
+          git push origin "${{ steps.generate_tag.outputs.tag }}"
+
+          echo "Created and pushed tag: ${{ steps.generate_tag.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.check_tag.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.generate_tag.outputs.tag }}
+          name: Cheatsheets ${{ steps.generate_tag.outputs.tag }}
+          body: |
+            ## Cheatsheets Release ${{ steps.generate_tag.outputs.tag }}
+
+            Archive of all cheatsheets as of commit `${{ steps.generate_tag.outputs.sha }}`.
+
+            **Released:** ${{ steps.generate_tag.outputs.date }}
+            **Commit:** ${{ github.sha }}
+          files: |
+            cheatsheets-${{ steps.generate_tag.outputs.tag }}.zip
+          draft: false
+          prerelease: false
+
+      - name: Tag already exists
+        if: steps.check_tag.outputs.exists == 'true'
+        run: |
+          echo "Tag ${{ steps.generate_tag.outputs.tag }} already exists. Cannot create duplicate release."
+          echo "Either delete the existing tag/release or make a new commit first."
+
+          exit 1
