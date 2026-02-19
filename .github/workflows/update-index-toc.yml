@@ -1,0 +1,97 @@
+---
+name: Update Index and TOC
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'cheatsheets/**/*.md'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'cheatsheets/**/*.md'
+
+permissions:
+  contents: write
+
+jobs:
+  update-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need at least 2 commits to compare
+          
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          
+      - name: Check for new cheatsheets
+        id: check_new_files
+        run: |
+          ## Check if this is the first commit
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            # Get list of added markdown files in cheatsheets/
+            NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD | grep '^cheatsheets/.*\.md$' || true)
+            
+            if [ -n "$NEW_FILES" ]; then
+              echo "new_files=true" >> $GITHUB_OUTPUT
+              echo "Found new cheatsheet files:"
+              echo "$NEW_FILES"
+            else
+              echo "new_files=false" >> $GITHUB_OUTPUT
+              echo "No new cheatsheet files found"
+            fi
+          else
+            ## First commit, check if any cheatsheets exist
+            if ls cheatsheets/**/*.md 1> /dev/null 2>&1; then
+              echo "new_files=true" >> $GITHUB_OUTPUT
+              echo "First commit - processing existing cheatsheets"
+            else
+              echo "new_files=false" >> $GITHUB_OUTPUT
+              echo "No cheatsheets found"
+            fi
+          fi
+          
+      - name: Generate index
+        if: steps.check_new_files.outputs.new_files == 'true'
+        run: |
+          python .scripts/generate_index.py
+          echo "Generated INDEX.md"
+          
+      - name: Generate TOC for all cheatsheets
+        if: steps.check_new_files.outputs.new_files == 'true'
+        run: |
+          python .scripts/generate_toc.py --write cheatsheets/
+          echo "Updated TOC in all cheatsheets"
+          
+      - name: Check for changes
+        if: steps.check_new_files.outputs.new_files == 'true'
+        id: check_changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+          fi
+          
+      - name: Commit and push changes
+        if: steps.check_new_files.outputs.new_files == 'true' && steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add INDEX.md cheatsheets/
+          git commit -m "chore: auto-update index and TOC [skip ci]"
+          git push
+          
+      - name: Skip - No new cheatsheets
+        if: steps.check_new_files.outputs.new_files == 'false'
+        run: |
+          echo "No new cheatsheets detected - skipping index/TOC generation"
