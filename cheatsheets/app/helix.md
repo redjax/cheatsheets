@@ -3,6 +3,10 @@ description: "Terminal text editor like Neovim, but with a bunch of built-in fun
 last_updated: "2026-02-02"
 tags: ["helix", "app", "cli", "tui"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [Usage](#usage)
+- [Links](#links)
 
 # Helix Editor
 

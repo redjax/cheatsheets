@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-02-02"
+last_updated: "2026-02-19"
 ---
 
 # Cheatsheets Index
@@ -18,23 +18,23 @@ last_updated: "2026-02-02"
 
 | Name | Description | Tags |
 | --- | --- | --- |
-| [Helix Editor](app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
+| [Helix Editor](cheatsheets/app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
 
 ## command
 
 | Name | Description | Tags |
 | --- | --- | --- |
-| [Git](command/git.md) | Version control system. | git, command, cli |
+| [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
 
 ## language
 
 | Name | Description | Tags |
 | --- | --- | --- |
-| [Python](language/python.md) | Python programming language. | language, python |
+| [Python](cheatsheets/language/python.md) | Python programming language. | language, python |
 
 ## system
 
 | Name | Description | Tags |
 | --- | --- | --- |
-| [Linux](system/linux.md) | Linux OS. | linux, system, os |
-| [Windows](system/windows.md) | Microsoft Windows OS. | windows, system, os |
+| [Linux](cheatsheets/system/linux.md) | Linux OS. | linux, system, os |
+| [Windows](cheatsheets/system/windows.md) | Microsoft Windows OS. | windows, system, os |

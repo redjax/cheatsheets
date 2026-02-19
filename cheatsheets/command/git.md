@@ -12,6 +12,22 @@ tags: ["git", "command", "cli"]
 - [Troubleshooting](#troubleshooting)
   - [Rewrite Git commit history](#rewrite-git-commit-history)
     - [Bash script to rewrite history](#bash-script-to-rewrite-history)
+- [Find a Python interpreter for pip installs](#find-a-python-interpreter-for-pip-installs)
+- [Ensure git-filter-repo is installed (try uv first, then pip)](#ensure-git-filter-repo-is-installed-try-uv-first-then-pip)
+- [Test git-filter-repo was installed correctly](#test-git-filter-repo-was-installed-correctly)
+- [Function to print help menu/usage](#function-to-print-help-menuusage)
+- [Default vars](#default-vars)
+- [Parse arguments](#parse-arguments)
+- [Create temporary directory to clone repo into](#create-temporary-directory-to-clone-repo-into)
+- [Read history with source username/email, replace with target](#read-history-with-source-usernameemail-replace-with-target)
+- [Rewrite history](#rewrite-history)
+- [Remove all refs with old data](#remove-all-refs-with-old-data)
+- [Expire old data locally before pushing](#expire-old-data-locally-before-pushing)
+- [Get list of commits with source email](#get-list-of-commits-with-source-email)
+- [If any commits remain with source email, exit](#if-any-commits-remain-with-source-email-exit)
+- [Remove all refs under refs/merge-requests/](#remove-all-refs-under-refsmerge-requests)
+- [Re-add origin (git-filter-repo removes it)](#re-add-origin-git-filter-repo-removes-it)
+- [Push rewritten histories back up](#push-rewritten-histories-back-up)
 
 ## Usage
 

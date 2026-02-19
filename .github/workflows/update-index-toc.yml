@@ -35,6 +35,13 @@ jobs:
       - name: Check for new cheatsheets
         id: check_new_files
         run: |
+          # If manually triggered, always run
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "new_files=true" >> $GITHUB_OUTPUT
+            echo "Manual trigger - processing all cheatsheets"
+            exit 0
+          fi
+          
           ## Check if this is the first commit
           if git rev-parse HEAD^ >/dev/null 2>&1; then
             # Get list of added markdown files in cheatsheets/
