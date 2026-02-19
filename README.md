@@ -4,6 +4,10 @@ My personal `~/.cheatsheets`. These are `man`-style documents written in Markdow
 
 Cheatsheets are in Markdown format, and can be used cross-platform, version controlled, and opened in any number of editors or viewers.
 
+## Index
+
+Check the [auto-generated index file](./INDEX.md) for a map of the cheatsheets.
+
 ## Setup
 
 Clone the repository to a directory, i.e. `~/.cheatsheets`:
