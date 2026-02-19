@@ -32,12 +32,13 @@ jobs:
         with:
           python-version: '3.14'
           
-      - name: Check for new cheatsheets
-        id: check_new_files
+      - name: Check for new and modified cheatsheets
+        id: check_changes
         run: |
-          # If manually triggered, always run
+          # If manually triggered, run everything
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "new_files=true" >> $GITHUB_OUTPUT
+            echo "modified_files=true" >> $GITHUB_OUTPUT
             echo "Manual trigger - processing all cheatsheets"
             exit 0
           fi
@@ -47,6 +48,9 @@ jobs:
             # Get list of added markdown files in cheatsheets/
             NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD | grep '^cheatsheets/.*\.md$' || true)
             
+            # Get list of modified markdown files in cheatsheets/ (excluding new files)
+            MODIFIED_FILES=$(git diff --name-only --diff-filter=M HEAD^ HEAD | grep '^cheatsheets/.*\.md$' || true)
+            
             if [ -n "$NEW_FILES" ]; then
               echo "new_files=true" >> $GITHUB_OUTPUT
               echo "Found new cheatsheet files:"
@@ -55,32 +59,43 @@ jobs:
               echo "new_files=false" >> $GITHUB_OUTPUT
               echo "No new cheatsheet files found"
             fi
+            
+            if [ -n "$MODIFIED_FILES" ]; then
+              echo "modified_files=true" >> $GITHUB_OUTPUT
+              echo "Found modified cheatsheet files:"
+              echo "$MODIFIED_FILES"
+            else
+              echo "modified_files=false" >> $GITHUB_OUTPUT
+              echo "No modified cheatsheet files found"
+            fi
           else
             ## First commit, check if any cheatsheets exist
             if ls cheatsheets/**/*.md 1> /dev/null 2>&1; then
               echo "new_files=true" >> $GITHUB_OUTPUT
+              echo "modified_files=false" >> $GITHUB_OUTPUT
               echo "First commit - processing existing cheatsheets"
             else
               echo "new_files=false" >> $GITHUB_OUTPUT
+              echo "modified_files=false" >> $GITHUB_OUTPUT
               echo "No cheatsheets found"
             fi
           fi
           
       - name: Generate index
-        if: steps.check_new_files.outputs.new_files == 'true'
+        if: steps.check_changes.outputs.new_files == 'true'
         run: |
           python .scripts/generate_index.py
           echo "Generated INDEX.md"
           
       - name: Generate TOC for all cheatsheets
-        if: steps.check_new_files.outputs.new_files == 'true'
+        if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
         run: |
           python .scripts/generate_toc.py --write cheatsheets/
           echo "Updated TOC in all cheatsheets"
           
       - name: Check for changes
-        if: steps.check_new_files.outputs.new_files == 'true'
-        id: check_changes
+        if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
+        id: check_git_changes
         run: |
           if git diff --quiet; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
@@ -91,7 +106,7 @@ jobs:
           fi
           
       - name: Commit and push changes
-        if: steps.check_new_files.outputs.new_files == 'true' && steps.check_changes.outputs.has_changes == 'true'
+        if: (steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true') && steps.check_git_changes.outputs.has_changes == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -99,7 +114,7 @@ jobs:
           git commit -m "chore: auto-update index and TOC [skip ci]"
           git push
           
-      - name: Skip - No new cheatsheets
-        if: steps.check_new_files.outputs.new_files == 'false'
+      - name: Skip - No changes detected
+        if: steps.check_changes.outputs.new_files == 'false' && steps.check_changes.outputs.modified_files == 'false'
         run: |
-          echo "No new cheatsheets detected - skipping index/TOC generation"
+          echo "✓ No new or modified cheatsheets detected - skipping"
