@@ -2,6 +2,7 @@
 name: Update Index and TOC
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
