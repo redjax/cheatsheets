@@ -1,0 +1,5 @@
+---
+debug: true
+
+app:
+  clone_path: ~/.cheatsheets
