@@ -5,6 +5,7 @@ import (
 
 	"github.com/redjax/cheatsheets/internal/config"
 	"github.com/redjax/cheatsheets/internal/constants"
+	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 )
 
 func main() {
@@ -17,6 +18,11 @@ func main() {
 
 	if cfg.Debug {
 		debugConfig(cfg)
+	}
+
+	// Ensure repository is cloned
+	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.App.ClonePath); err != nil {
+		panic(fmt.Sprintf("Failed to ensure repository: %v", err))
 	}
 }
 
