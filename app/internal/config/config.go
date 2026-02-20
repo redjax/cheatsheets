@@ -31,6 +31,7 @@ type Config struct {
 // GitConfig struct for app-level configuration
 type GitConfig struct {
 	ClonePath string `koanf:"clone_path" path:"expand"`
+	Token     string `koanf:"token"`
 }
 
 // FindConfigFile checks for a .local variant of the config file first,

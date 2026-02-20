@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Ensure repository is cloned
-	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.Git.ClonePath); err != nil {
+	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.Git.ClonePath, cfg.Git.Token); err != nil {
 		panic(fmt.Sprintf("Failed to ensure repository: %v", err))
 	}
 }

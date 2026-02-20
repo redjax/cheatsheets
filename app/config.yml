@@ -3,3 +3,4 @@ debug: true
 
 git:
   clone_path: ~/.cheatsheets
+  token: "" # Optional

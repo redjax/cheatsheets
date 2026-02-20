@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
 // IsRepositoryCloned checks if the repository is already cloned at the given path.
@@ -33,13 +34,24 @@ func IsRepositoryCloned(path string) (bool, error) {
 }
 
 // CloneRepository clones the repository from the given URL to the specified path.
-func CloneRepository(url, path string) error {
+// If a token is provided, it will be used for authentication.
+func CloneRepository(url, path, token string) error {
 	fmt.Printf("Cloning repository from %s to %s\n", url, path)
 
-	_, err := git.PlainClone(path, false, &git.CloneOptions{
+	cloneOpts := &git.CloneOptions{
 		URL:      url,
 		Progress: os.Stdout,
-	})
+	}
+
+	// If token is provided, configure authentication
+	if token != "" {
+		cloneOpts.Auth = &http.BasicAuth{
+			Username: token, // GitHub uses token as username
+			Password: "",    // Password should be empty
+		}
+	}
+
+	_, err := git.PlainClone(path, false, cloneOpts)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone repository: %w", err)
@@ -51,7 +63,8 @@ func CloneRepository(url, path string) error {
 
 // EnsureRepository checks if the repository is already cloned at the given path,
 // and if not, tests that the repo URL is valid, then clones it to the path.
-func EnsureRepository(url, path string) error {
+// If a token is provided, it will be used for authentication during cloning.
+func EnsureRepository(url, path, token string) error {
 	cloned, err := IsRepositoryCloned(path)
 	if err != nil {
 		return fmt.Errorf("error checking repository: %w", err)
@@ -63,5 +76,5 @@ func EnsureRepository(url, path string) error {
 	}
 
 	// Repository doesn't exist, clone it
-	return CloneRepository(url, path)
+	return CloneRepository(url, path, token)
 }
