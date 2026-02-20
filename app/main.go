@@ -21,7 +21,7 @@ func main() {
 	}
 
 	// Ensure repository is cloned
-	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.App.ClonePath); err != nil {
+	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.Git.ClonePath); err != nil {
 		panic(fmt.Sprintf("Failed to ensure repository: %v", err))
 	}
 }
@@ -29,5 +29,5 @@ func main() {
 func debugConfig(cfg *config.Config) {
 	fmt.Printf("Repository URL: %v\n", constants.RepoURL)
 	fmt.Printf("Debug mode: %v\n", cfg.Debug)
-	fmt.Printf("App Config: %+v\n", cfg.App)
+	fmt.Printf("App Config: %+v\n", cfg.Git)
 }

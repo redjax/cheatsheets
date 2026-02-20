@@ -24,12 +24,12 @@ var K = koanf.New(".")
 
 // Config represents the application configuration
 type Config struct {
-	App   AppConfig `koanf:"app"`
+	Git   GitConfig `koanf:"git"`
 	Debug bool      `koanf:"debug"`
 }
 
-// AppConfig struct for app-level configuration
-type AppConfig struct {
+// GitConfig struct for app-level configuration
+type GitConfig struct {
 	ClonePath string `koanf:"clone_path" path:"expand"`
 }
 

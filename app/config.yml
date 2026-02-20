@@ -1,5 +1,5 @@
 ---
 debug: true
 
-app:
+git:
   clone_path: ~/.cheatsheets
