@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/adrg/xdg"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/toml"
@@ -15,6 +16,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/v2"
+	"github.com/redjax/cheatsheets/internal/constants"
 	"github.com/spf13/pflag"
 )
 
@@ -30,6 +32,7 @@ type Config struct {
 
 // GitConfig struct for app-level configuration
 type GitConfig struct {
+	RepoUrl   string `koanf:"repo_url"`
 	ClonePath string `koanf:"clone_path" path:"expand"`
 	Token     string `koanf:"token"`
 }
@@ -42,7 +45,7 @@ func (g GitConfig) String() string {
 		token = maskToken(g.Token)
 	}
 
-	return fmt.Sprintf("GitConfig{ClonePath: %s, Token: %s}", g.ClonePath, token)
+	return fmt.Sprintf("GitConfig{RepoUrl: %s, ClonePath: %s, Token: %s}", g.RepoUrl, g.ClonePath, token)
 }
 
 // maskToken masks a git token while showing the prefix and first few characters of the secret
@@ -113,6 +116,11 @@ func FindConfigFile(configFile string) string {
 	return configFile
 }
 
+// getDefaultClonePath returns the default clone path using XDG directories
+func getDefaultClonePath() string {
+	return filepath.Join(xdg.DataHome, constants.AppDataDirName)
+}
+
 // LoadConfig loads configuration from file, environment variables, and CLI flags
 // Returns the parsed config struct or an error
 func LoadConfig(flagSet *pflag.FlagSet, configFile string) (*Config, error) {
@@ -146,6 +154,14 @@ func LoadConfig(flagSet *pflag.FlagSet, configFile string) (*Config, error) {
 	var cfg Config
 	if err := K.Unmarshal("", &cfg); err != nil {
 		return nil, fmt.Errorf("error unmarshaling config: %w", err)
+	}
+
+	// Set defaults for empty values
+	if cfg.Git.RepoUrl == "" {
+		cfg.Git.RepoUrl = constants.RepoURL
+	}
+	if cfg.Git.ClonePath == "" {
+		cfg.Git.ClonePath = getDefaultClonePath()
 	}
 
 	// Expand paths

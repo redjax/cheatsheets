@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/redjax/cheatsheets/internal/config"
-	"github.com/redjax/cheatsheets/internal/constants"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 )
 
@@ -21,13 +20,17 @@ func main() {
 	}
 
 	// Ensure repository is cloned
-	if err := reposervices.EnsureRepository(constants.RepoURL, cfg.Git.ClonePath, cfg.Git.Token); err != nil {
+	if err := reposervices.EnsureRepository(cfg.Git.RepoUrl, cfg.Git.ClonePath, cfg.Git.Token); err != nil {
 		panic(fmt.Sprintf("Failed to ensure repository: %v", err))
+	}
+
+	// Update repository (this is a test, remove later)
+	if err := reposervices.UpdateRepository(cfg.Git.ClonePath, cfg.Git.Token); err != nil {
+		panic(fmt.Sprintf("Failed to update repository: %v", err))
 	}
 }
 
 func debugConfig(cfg *config.Config) {
-	fmt.Printf("Repository URL: %v\n", constants.RepoURL)
 	fmt.Printf("Debug mode: %v\n", cfg.Debug)
-	fmt.Printf("App Config: %+v\n", cfg.Git)
+	fmt.Printf("Git Config: %+v\n", cfg.Git)
 }

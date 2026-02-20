@@ -78,3 +78,62 @@ func EnsureRepository(url, path, token string) error {
 	// Repository doesn't exist, clone it
 	return CloneRepository(url, path, token)
 }
+
+// UpdateRepository pulls the latest changes from the remote repository.
+// If a token is provided, it will be used for authentication.
+func UpdateRepository(path, token string) error {
+	fmt.Printf("Updating repository at %s\n", path)
+
+	// Open the existing repository
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get remote to check URL format
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return fmt.Errorf("failed to get remote: %w", err)
+	}
+
+	// Get the remote config
+	config := remote.Config()
+	if len(config.URLs) > 0 {
+		fmt.Printf("Remote URL: %s\n", config.URLs[0])
+	}
+
+	// Get the working tree
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Configure pull options
+	pullOpts := &git.PullOptions{
+		RemoteName: "origin",
+		Progress:   os.Stdout,
+		// Force HTTPS-based pull, don't use remote URL
+		Force: false,
+	}
+
+	// If token is provided, configure authentication
+	if token != "" {
+		pullOpts.Auth = &http.BasicAuth{
+			Username: token, // GitHub uses token as username
+			Password: "",    // Password should be empty
+		}
+	}
+
+	// Pull latest changes
+	err = worktree.Pull(pullOpts)
+	if err == git.NoErrAlreadyUpToDate {
+		fmt.Println("Repository is already up to date")
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to pull updates: %w", err)
+	}
+
+	fmt.Println("Repository updated successfully")
+	return nil
+}

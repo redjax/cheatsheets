@@ -3,6 +3,7 @@ module github.com/redjax/cheatsheets
 go 1.25.3
 
 require (
+	github.com/adrg/xdg v0.5.3
 	github.com/go-git/go-git/v5 v5.16.5
 	github.com/knadh/koanf/parsers/dotenv v1.1.1
 	github.com/knadh/koanf/parsers/json v1.0.0
