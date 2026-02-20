@@ -13,6 +13,6 @@ Check the [auto-generated index file](./INDEX.md) for a map of the cheatsheets.
 Clone the repository to a directory, i.e. `~/.cheatsheets`:
 
 ```shell
-git clone git@github.com:redjax/cheatsheeets.git ~/.cheatsheets
+git clone git@github.com:redjax/cheatsheets.git ~/.cheatsheets
 ```
 
