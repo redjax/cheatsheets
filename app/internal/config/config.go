@@ -34,6 +34,66 @@ type GitConfig struct {
 	Token     string `koanf:"token"`
 }
 
+// String implements the Stringer interface to mask sensitive fields when printed
+func (g GitConfig) String() string {
+	token := "<empty>"
+
+	if g.Token != "" {
+		token = maskToken(g.Token)
+	}
+
+	return fmt.Sprintf("GitConfig{ClonePath: %s, Token: %s}", g.ClonePath, token)
+}
+
+// maskToken masks a git token while showing the prefix and first few characters of the secret
+func maskToken(token string) string {
+	if token == "" {
+		return "<empty>"
+	}
+
+	// Common git forge token prefixes
+	prefixes := []string{
+		"github_pat_", // GitHub fine-grained PAT
+		"ghp_",        // GitHub personal access token
+		"gho_",        // GitHub OAuth token
+		"ghu_",        // GitHub user-to-server token
+		"ghs_",        // GitHub server-to-server token
+		"ghr_",        // GitHub refresh token
+		"glpat-",      // GitLab personal access token
+		"gloas-",      // GitLab OAuth application secret
+		"glptt-",      // GitLab project access token
+	}
+
+	// Find matching prefix
+	var prefix string
+	secretStart := 0
+
+	for _, p := range prefixes {
+		if strings.HasPrefix(token, p) {
+			prefix = p
+			secretStart = len(p)
+			break
+		}
+	}
+
+	// If no known prefix, treat entire token as secret
+	if prefix == "" {
+		if len(token) <= 7 {
+			return "***"
+		}
+
+		return token[:7] + "***"
+	}
+
+	// Show prefix + first 7 chars of secret
+	secretPart := token[secretStart:]
+	if len(secretPart) <= 7 {
+		return prefix + "***"
+	}
+
+	return prefix + secretPart[:7] + "***"
+}
+
 // FindConfigFile checks for a .local variant of the config file first,
 // falling back to the original if .local doesn't exist
 func FindConfigFile(configFile string) string {
