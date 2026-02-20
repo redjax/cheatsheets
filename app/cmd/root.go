@@ -5,6 +5,7 @@ import (
 	"os"
 
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
+	repocommand "github.com/redjax/cheatsheets/internal/commands/repoCommand"
 	"github.com/spf13/cobra"
 )
 
@@ -33,6 +34,7 @@ func Execute() {
 func init() {
 	// Register subcommands
 	rootCmd.AddCommand(debugcommand.DebugCmd)
+	rootCmd.AddCommand(repocommand.RepoCmd)
 
 	// Global persistent flags
 	// Empty default means "use default with .local fallback"

@@ -9,6 +9,15 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
+// GetRepositoryStatus returns detailed status information about the repository.
+type RepositoryStatus struct {
+	IsCloned         bool
+	IsClean          bool
+	HasRemoteUpdates bool
+	CurrentBranch    string
+	Error            error
+}
+
 // IsRepositoryCloned checks if the repository is already cloned at the given path.
 func IsRepositoryCloned(path string) (bool, error) {
 	// Check if dir already exists
@@ -136,4 +145,130 @@ func UpdateRepository(path, token string) error {
 
 	fmt.Println("Repository updated successfully")
 	return nil
+}
+
+// IsWorkingTreeClean checks if the repository has uncommitted changes.
+// Returns true if the working tree is clean (no changes), false if there are uncommitted changes.
+func IsWorkingTreeClean(path string) (bool, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return false, fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return false, fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	status, err := worktree.Status()
+	if err != nil {
+		return false, fmt.Errorf("failed to get working tree status: %w", err)
+	}
+
+	return status.IsClean(), nil
+}
+
+// CheckForRemoteUpdates checks if there are updates available from the remote repository.
+// Returns true if remote has new commits, false if local is up to date.
+func CheckForRemoteUpdates(path, token string) (bool, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return false, fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get the remote
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return false, fmt.Errorf("failed to get remote: %w", err)
+	}
+
+	// Configure list options
+	listOpts := &git.ListOptions{}
+	if token != "" {
+		listOpts.Auth = &http.BasicAuth{
+			Username: token,
+			Password: "",
+		}
+	}
+
+	// Fetch remote references without downloading objects
+	refs, err := remote.List(listOpts)
+	if err != nil {
+		return false, fmt.Errorf("failed to list remote references: %w", err)
+	}
+
+	// Get local HEAD reference
+	head, err := repo.Head()
+	if err != nil {
+		return false, fmt.Errorf("failed to get HEAD reference: %w", err)
+	}
+
+	// Find the remote HEAD for the current branch
+	localHash := head.Hash()
+	branchName := head.Name()
+
+	var remoteHash string
+	for _, ref := range refs {
+		if ref.Name() == branchName {
+			remoteHash = ref.Hash().String()
+			break
+		}
+	}
+
+	if remoteHash == "" {
+		return false, fmt.Errorf("could not find remote reference for branch %s", branchName)
+	}
+
+	// Compare hashes
+	return localHash.String() != remoteHash, nil
+}
+
+// ValidateRepository performs a comprehensive validation of the repository.
+func ValidateRepository(path, token string) RepositoryStatus {
+	status := RepositoryStatus{}
+
+	// Check if cloned
+	cloned, err := IsRepositoryCloned(path)
+	if err != nil {
+		status.Error = err
+		return status
+	}
+	status.IsCloned = cloned
+
+	if !cloned {
+		// If not cloned, nothing else to check
+		return status
+	}
+
+	// Get current branch
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		status.Error = fmt.Errorf("failed to open repository: %w", err)
+		return status
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		status.Error = fmt.Errorf("failed to get HEAD: %w", err)
+		return status
+	}
+	status.CurrentBranch = head.Name().Short()
+
+	// Check if working tree is clean
+	clean, err := IsWorkingTreeClean(path)
+	if err != nil {
+		status.Error = err
+		return status
+	}
+	status.IsClean = clean
+
+	// Check for remote updates
+	hasUpdates, err := CheckForRemoteUpdates(path, token)
+	if err != nil {
+		status.Error = err
+		return status
+	}
+	status.HasRemoteUpdates = hasUpdates
+
+	return status
 }
