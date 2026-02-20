@@ -1,6 +1,7 @@
 package repocommand
 
 import (
+	clonecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/cloneCommand"
 	validatecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/validateCommand"
 	"github.com/spf13/cobra"
 )
@@ -18,5 +19,6 @@ var RepoCmd = &cobra.Command{
 
 func init() {
 	// Register subcommands
+	RepoCmd.AddCommand(clonecommand.CloneCmd)
 	RepoCmd.AddCommand(validatecommand.ValidateCmd)
 }

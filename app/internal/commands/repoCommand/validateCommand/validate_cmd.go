@@ -1,9 +1,13 @@
 package validatecommand
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/constants"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
@@ -53,7 +57,35 @@ var ValidateCmd = &cobra.Command{
 			fmt.Printf("  Current branch: %s\n", status.CurrentBranch)
 		} else {
 			fmt.Println("✗ Repository is NOT cloned")
-			fmt.Println("  Run the clone command to set up the repository")
+			fmt.Println()
+
+			// Prompt user to clone
+			fmt.Print("Would you like to clone the repository now? (y/n): ")
+			reader := bufio.NewReader(os.Stdin)
+			response, err := reader.ReadString('\n')
+			if err != nil {
+				return fmt.Errorf("error reading input: %w", err)
+			}
+
+			response = strings.TrimSpace(strings.ToLower(response))
+			if response == "y" || response == "yes" {
+				fmt.Println()
+				fmt.Println("=== Cloning Repository ===")
+				fmt.Printf("Repository URL: %s\n", constants.RepoURL)
+				fmt.Printf("Clone Path: %s\n", cfg.Git.ClonePath)
+				fmt.Println()
+
+				err = reposervices.CloneRepository(constants.RepoURL, cfg.Git.ClonePath, cfg.Git.Token)
+				if err != nil {
+					return fmt.Errorf("failed to clone repository: %w", err)
+				}
+
+				fmt.Println()
+				fmt.Println("✓ Repository cloned successfully")
+			} else {
+				fmt.Println("\nSkipping clone. Run 'repo clone' when ready.")
+			}
+
 			return nil
 		}
 
