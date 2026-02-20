@@ -13,10 +13,21 @@ var DebugCmd = &cobra.Command{
 	Use:   "debug",
 	Short: "Print debug information about the configuration",
 	Long:  `Displays the current configuration including paths, URLs, and other settings for debugging purposes.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(command *cobra.Command, args []string) {
+		// Get config file from persistent flag
+		configFile, _ := command.Flags().GetString("config-file")
+
+		var configPath string
+		if configFile == "" {
+			// No explicit config specified, use default with .local fallback
+			configPath = config.FindConfigFile("config.yml")
+		} else {
+			// Explicit config specified, use it directly (no .local fallback)
+			configPath = configFile
+		}
+
 		// Load configuration
-		configFile := config.FindConfigFile("config.yml")
-		cfg, err := config.LoadConfig(nil, configFile)
+		cfg, err := config.LoadConfig(nil, configPath)
 		if err != nil {
 			fmt.Printf("Failed to load config: %v\n", err)
 			return

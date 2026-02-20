@@ -8,6 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	configFile string
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "chtsht",
 	Short: "A cheatsheet management CLI",
@@ -30,6 +34,7 @@ func init() {
 	// Register subcommands
 	rootCmd.AddCommand(debugcommand.DebugCmd)
 
-	// Global flags can be added here
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is config.yml)")
+	// Global persistent flags
+	// Empty default means "use default with .local fallback"
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config-file", "c", "", "config file path (default: config.yml with .local fallback)")
 }
