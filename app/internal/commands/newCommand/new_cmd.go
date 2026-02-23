@@ -70,11 +70,18 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("repository path does not exist: %s\nRun 'chtsht repo clone' first", repoPath)
 	}
 
+	// Get available types from the repository
+	availableTypes, err := cheatsheetservice.GetAvailableTypes(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to get available types: %w", err)
+	}
+
 	// Prompt for missing required fields
 	reader := bufio.NewReader(os.Stdin)
 
 	if cheatsheetType == "" {
-		fmt.Print("Enter cheatsheet type (app/command/language/system): ")
+		typesList := strings.Join(availableTypes, "/")
+		fmt.Printf("Enter cheatsheet type (%s): ", typesList)
 		input, _ := reader.ReadString('\n')
 		cheatsheetType = strings.TrimSpace(input)
 	}
