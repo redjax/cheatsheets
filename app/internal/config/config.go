@@ -26,8 +26,9 @@ var K = koanf.New(".")
 
 // Config represents the application configuration
 type Config struct {
-	Git   GitConfig `koanf:"git"`
-	Debug bool      `koanf:"debug"`
+	SheetsPath string    `koanf:"sheets_path" path:"expand"`
+	Git        GitConfig `koanf:"git"`
+	Debug      bool      `koanf:"debug"`
 }
 
 // GitConfig struct for app-level configuration
@@ -121,6 +122,15 @@ func getDefaultClonePath() string {
 	return filepath.Join(xdg.DataHome, constants.AppDataDirName)
 }
 
+// getDefaultSheetsPath returns the default sheets path (user's home directory)
+func getDefaultSheetsPath() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "~/.cheatsheets"
+	}
+	return filepath.Join(home, ".cheatsheets")
+}
+
 // LoadConfig loads configuration from file, environment variables, and CLI flags
 // Returns the parsed config struct or an error
 func LoadConfig(flagSet *pflag.FlagSet, configFile string) (*Config, error) {
@@ -162,6 +172,9 @@ func LoadConfig(flagSet *pflag.FlagSet, configFile string) (*Config, error) {
 	}
 	if cfg.Git.ClonePath == "" {
 		cfg.Git.ClonePath = getDefaultClonePath()
+	}
+	if cfg.SheetsPath == "" {
+		cfg.SheetsPath = getDefaultSheetsPath()
 	}
 
 	// Expand paths

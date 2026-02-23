@@ -7,6 +7,7 @@ import (
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
 	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
 	repocommand "github.com/redjax/cheatsheets/internal/commands/repoCommand"
+	synccommand "github.com/redjax/cheatsheets/internal/commands/syncCommand"
 	"github.com/spf13/cobra"
 )
 
@@ -37,6 +38,7 @@ func init() {
 	rootCmd.AddCommand(debugcommand.DebugCmd)
 	rootCmd.AddCommand(listcommand.ListCmd)
 	rootCmd.AddCommand(repocommand.RepoCmd)
+	rootCmd.AddCommand(synccommand.SyncCmd)
 
 	// Global persistent flags
 	// Empty default means "use default with .local fallback"

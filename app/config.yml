@@ -1,5 +1,6 @@
 ---
 debug: true
+sheets_path: "~/.cheatsheets"
 
 git:
   repo_url: "" # Optional, can be set to override the default repository URL
