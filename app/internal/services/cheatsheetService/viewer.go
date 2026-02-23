@@ -346,7 +346,7 @@ func (m viewerModel) View() string {
 	} else {
 		// Normal mode
 		footer = footerStyle.Render(fmt.Sprintf(
-			"↑/↓: scroll • k/j: scroll • PgUp/PgDn: page • g/G: top/bottom • /: search • q: quit | %3.f%%",
+			"↑/↓/scroll • k/j • PgUp/PgDn • g/G: top/bottom • /: search • Shift+drag: select text • q: quit | %3.f%%",
 			m.viewport.ScrollPercent()*100,
 		))
 	}
