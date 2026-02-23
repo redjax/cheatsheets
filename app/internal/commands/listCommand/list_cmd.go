@@ -16,9 +16,10 @@ var (
 
 // ListCmd represents the list command
 var ListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List available cheatsheets",
-	Long:  `Lists all cheatsheets in the repository, optionally filtered by type (app, command, language, system, etc.).`,
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List available cheatsheets. Alias: ls",
+	Long:    `Lists all cheatsheets in the repository, optionally filtered by type (app, command, language, system, etc.).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get the config file path from the persistent flag
 		configFile, err := cmd.Flags().GetString("config-file")
