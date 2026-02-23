@@ -9,6 +9,7 @@ import (
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
 	editcommand "github.com/redjax/cheatsheets/internal/commands/editCommand"
 	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
+	newcommand "github.com/redjax/cheatsheets/internal/commands/newCommand"
 	repocommand "github.com/redjax/cheatsheets/internal/commands/repoCommand"
 	showcommand "github.com/redjax/cheatsheets/internal/commands/showCommand"
 	synccommand "github.com/redjax/cheatsheets/internal/commands/syncCommand"
@@ -44,6 +45,7 @@ func init() {
 	rootCmd.AddCommand(debugcommand.DebugCmd)
 	rootCmd.AddCommand(editcommand.EditCmd)
 	rootCmd.AddCommand(listcommand.ListCmd)
+	rootCmd.AddCommand(newcommand.NewCmd)
 	rootCmd.AddCommand(repocommand.RepoCmd)
 	rootCmd.AddCommand(showcommand.ShowCmd)
 	rootCmd.AddCommand(synccommand.SyncCmd)

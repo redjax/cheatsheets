@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/manifoldco/promptui"
 )
@@ -343,4 +344,96 @@ func ShowCheatsheetSelector(repoPath, typeFilter string) error {
 	selected := options[idx]
 	fmt.Println() // Add blank line for spacing
 	return ShowCheatsheet(repoPath, selected.Type, selected.Name)
+}
+
+// CreateCheatsheetOptions contains options for creating a new cheatsheet
+type CreateCheatsheetOptions struct {
+	Type        string
+	Name        string
+	Title       string
+	Description string
+	Tags        string
+}
+
+// CreateCheatsheet creates a new cheatsheet from a template
+func CreateCheatsheet(repoPath string, opts CreateCheatsheetOptions) (string, error) {
+	// Validate type
+	validTypes := []string{"app", "command", "language", "system"}
+	isValidType := false
+	for _, vt := range validTypes {
+		if opts.Type == vt {
+			isValidType = true
+			break
+		}
+	}
+	if !isValidType {
+		return "", fmt.Errorf("invalid type '%s'. Must be one of: %s", opts.Type, strings.Join(validTypes, ", "))
+	}
+
+	// Validate name
+	if opts.Name == "" {
+		return "", fmt.Errorf("cheatsheet name cannot be empty")
+	}
+
+	// Build paths
+	templatePath := filepath.Join(repoPath, ".templates", opts.Type+".md")
+	cheatsheetsPath := GetCheatsheetsPath(repoPath)
+	targetDir := filepath.Join(cheatsheetsPath, opts.Type)
+	targetFile := filepath.Join(targetDir, opts.Name+".md")
+
+	// Check if template exists
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		return "", fmt.Errorf("template not found: %s", templatePath)
+	}
+
+	// Check if target file already exists
+	if _, err := os.Stat(targetFile); err == nil {
+		return "", fmt.Errorf("cheatsheet already exists: %s", targetFile)
+	}
+
+	// Read template
+	templateContent, err := os.ReadFile(templatePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read template: %w", err)
+	}
+
+	// Prepare replacements
+	content := string(templateContent)
+	replacements := map[string]string{
+		"{{title}}":        opts.Title,
+		"{{description}}":  opts.Description,
+		"{{last_updated}}": time.Now().Format("2006-01-02"),
+	}
+
+	// Format tags
+	var formattedTags string
+	if opts.Tags != "" {
+		tagList := strings.Split(opts.Tags, ",")
+		quotedTags := make([]string, 0, len(tagList))
+		for _, tag := range tagList {
+			tag = strings.TrimSpace(tag)
+			if tag != "" {
+				quotedTags = append(quotedTags, fmt.Sprintf(`"%s"`, tag))
+			}
+		}
+		formattedTags = strings.Join(quotedTags, ", ")
+	}
+	replacements["{{tags}}"] = formattedTags
+
+	// Apply replacements
+	for placeholder, value := range replacements {
+		content = strings.ReplaceAll(content, placeholder, value)
+	}
+
+	// Create target directory if it doesn't exist
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		return "", fmt.Errorf("failed to create target directory: %w", err)
+	}
+
+	// Write the new file
+	if err := os.WriteFile(targetFile, []byte(content), 0644); err != nil {
+		return "", fmt.Errorf("failed to write cheatsheet file: %w", err)
+	}
+
+	return targetFile, nil
 }
