@@ -2,9 +2,11 @@ package cheatsheetservice
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -76,13 +78,32 @@ func (m viewerModel) View() string {
 	return fmt.Sprintf("%s\n%s\n%s", header, m.viewport.View(), footer)
 }
 
-// ShowInViewer displays content in a custom TUI viewer
+// ShowInViewer displays content using glamour rendering (glow's underlying library)
 func ShowInViewer(rawMarkdown string) error {
-	// Apply syntax highlighting to the markdown
-	highlighted := HighlightMarkdown(rawMarkdown)
+	// Get terminal width for proper rendering
+	width, _, err := getTerminalSize()
+	if err != nil {
+		width = 80 // fallback width
+	}
 
+	// Create glamour renderer with dark style
+	r, err := glamour.NewTermRenderer(
+		glamour.WithAutoStyle(),
+		glamour.WithWordWrap(width-4), // Leave some margin
+	)
+	if err != nil {
+		return fmt.Errorf("error creating markdown renderer: %w", err)
+	}
+
+	// Render the markdown
+	rendered, err := r.Render(rawMarkdown)
+	if err != nil {
+		return fmt.Errorf("error rendering markdown: %w", err)
+	}
+
+	// Display in the TUI viewer
 	m := viewerModel{
-		content: highlighted,
+		content: rendered,
 	}
 
 	p := tea.NewProgram(
@@ -96,4 +117,13 @@ func ShowInViewer(rawMarkdown string) error {
 	}
 
 	return nil
+}
+
+// getTerminalSize returns the width and height of the terminal
+func getTerminalSize() (int, int, error) {
+	width, height, err := getSize(os.Stdout.Fd())
+	if err != nil {
+		return 80, 24, nil // fallback
+	}
+	return width, height, nil
 }
