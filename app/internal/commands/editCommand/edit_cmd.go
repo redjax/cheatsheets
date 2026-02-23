@@ -6,7 +6,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strings"
+	"time"
 
 	"github.com/redjax/cheatsheets/internal/config"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
@@ -220,6 +223,9 @@ func openInEditor(originalPath string) error {
 		return fmt.Errorf("failed to read edited content: %w", err)
 	}
 
+	// Update the last_updated field in the frontmatter
+	editedContent = updateLastUpdatedDate(editedContent)
+
 	// Write to original file atomically using a backup
 	backupPath := originalPath + ".backup"
 
@@ -300,4 +306,39 @@ func getEditor() (string, error) {
 		}
 		return "vi", nil
 	}
+}
+
+// updateLastUpdatedDate updates the last_updated field in the YAML frontmatter
+func updateLastUpdatedDate(content []byte) []byte {
+	contentStr := string(content)
+	currentDate := time.Now().Format("2006-01-02")
+
+	// Pattern to match last_updated field in YAML frontmatter
+	// Matches: last_updated: "YYYY-MM-DD" or last_updated: 'YYYY-MM-DD' or last_updated: YYYY-MM-DD
+	pattern := regexp.MustCompile(`(?m)^last_updated:\s*["']?[0-9]{4}-[0-9]{2}-[0-9]{2}["']?`)
+
+	// Check if last_updated exists in frontmatter
+	if pattern.MatchString(contentStr) {
+		// Replace existing last_updated
+		contentStr = pattern.ReplaceAllString(contentStr, fmt.Sprintf(`last_updated: "%s"`, currentDate))
+	} else {
+		// If last_updated doesn't exist but frontmatter does, add it
+		frontmatterPattern := regexp.MustCompile(`(?s)^---\n(.*?)\n---`)
+		if frontmatterPattern.MatchString(contentStr) {
+			// Add last_updated to the frontmatter
+			contentStr = frontmatterPattern.ReplaceAllStringFunc(contentStr, func(match string) string {
+				// Insert last_updated before the closing ---
+				lines := strings.Split(match, "\n")
+				if len(lines) >= 2 {
+					// Insert before the last line (which is ---)
+					result := strings.Join(lines[:len(lines)-1], "\n")
+					result += fmt.Sprintf("\nlast_updated: \"%s\"\n---", currentDate)
+					return result
+				}
+				return match
+			})
+		}
+	}
+
+	return []byte(contentStr)
 }
