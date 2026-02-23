@@ -222,21 +222,62 @@ func ShowCheatsheetByName(repoPath, name string) error {
 		return fmt.Errorf("error getting available types: %w", err)
 	}
 
-	// Search for the cheatsheet in all types
-	var foundType string
+	// Search for the cheatsheet in all types and collect all matches
+	var foundTypes []string
 	for _, t := range availableTypes {
 		filePath := GetCheatsheetPath(repoPath, t, name)
 		if _, err := os.Stat(filePath); err == nil {
-			foundType = t
-			break
+			foundTypes = append(foundTypes, t)
 		}
 	}
 
-	if foundType == "" {
+	if len(foundTypes) == 0 {
 		return fmt.Errorf("cheatsheet '%s' not found in any type", name)
 	}
 
-	return ShowCheatsheet(repoPath, foundType, name)
+	// If only one match, show it directly
+	if len(foundTypes) == 1 {
+		return ShowCheatsheet(repoPath, foundTypes[0], name)
+	}
+
+	// Multiple matches - let user choose
+	fmt.Printf("Multiple cheatsheets named '%s' found:\n\n", name)
+
+	type cheatsheetOption struct {
+		Display string
+		Type    string
+	}
+
+	var options []cheatsheetOption
+	for _, t := range foundTypes {
+		options = append(options, cheatsheetOption{
+			Display: fmt.Sprintf("[%s] %s", t, name),
+			Type:    t,
+		})
+	}
+
+	templates := &promptui.SelectTemplates{
+		Label:    "{{ . }}",
+		Active:   "▸ {{ .Display | cyan }}",
+		Inactive: "  {{ .Display }}",
+		Selected: "✓ {{ .Display | green }}",
+	}
+
+	prompt := promptui.Select{
+		Label:     "Select which cheatsheet to view",
+		Items:     options,
+		Templates: templates,
+		Size:      len(options),
+	}
+
+	idx, _, err := prompt.Run()
+	if err != nil {
+		return fmt.Errorf("selection cancelled")
+	}
+
+	selected := options[idx]
+	fmt.Println() // Add blank line for spacing
+	return ShowCheatsheet(repoPath, selected.Type, name)
 }
 
 // ShowCheatsheetSelector displays an interactive selector for choosing a cheatsheet
