@@ -2,8 +2,10 @@ package editcommand
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 
 	"github.com/redjax/cheatsheets/internal/config"
@@ -137,28 +139,131 @@ func editWithSelector(repoPath, typeFilter string) error {
 	return fmt.Errorf("please specify a cheatsheet name: chtsht edit <name>")
 }
 
-// openInEditor opens a file in the user's default editor
-func openInEditor(filePath string) error {
+// openInEditor opens a file in the user's default editor using a temp file for safety
+func openInEditor(originalPath string) error {
 	editor, err := getEditor()
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Opening %s in %s...\n", filePath, editor)
+	// Create cheatsheets temp directory for easier cleanup
+	tempDir := filepath.Join(os.TempDir(), "cheatsheets")
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		return fmt.Errorf("failed to create temp directory: %w", err)
+	}
 
-	// Create command to open editor
-	cmd := exec.Command(editor, filePath)
+	// Create a temporary file for editing
+	tempFile, err := os.CreateTemp(tempDir, "chtsht-edit-*.md")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tempPath := tempFile.Name()
+
+	// Ensure temp file is cleaned up on exit
+	defer func() {
+		tempFile.Close()
+		os.Remove(tempPath)
+	}()
+
+	// Copy original file to temp file
+	originalFile, err := os.Open(originalPath)
+	if err != nil {
+		return fmt.Errorf("failed to open original file: %w", err)
+	}
+
+	_, err = io.Copy(tempFile, originalFile)
+	originalFile.Close()
+	tempFile.Close() // Close before opening in editor
+
+	if err != nil {
+		return fmt.Errorf("failed to copy file to temp location: %w", err)
+	}
+
+	// Get original file info for permission preservation
+	originalInfo, err := os.Stat(originalPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat original file: %w", err)
+	}
+
+	fmt.Printf("Opening %s in %s...\n", filepath.Base(originalPath), editor)
+
+	// Create command to open editor with temp file
+	cmd := exec.Command(editor, tempPath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	// Run editor and wait for it to exit
 	if err := cmd.Run(); err != nil {
+		// Check if this is just a non-zero exit code
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			return fmt.Errorf("editor exited with code %d, changes not saved", exitErr.ExitCode())
+		}
 		return fmt.Errorf("error running editor: %w", err)
 	}
 
-	fmt.Println("Edit complete.")
+	// Editor exited successfully - check if temp file was modified
+	tempInfo, err := os.Stat(tempPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat temp file after editing: %w", err)
+	}
+
+	// Compare modification times
+	if !tempInfo.ModTime().After(originalInfo.ModTime()) {
+		fmt.Println("No changes made.")
+		return nil
+	}
+
+	// Read the edited content from temp file
+	editedContent, err := os.ReadFile(tempPath)
+	if err != nil {
+		return fmt.Errorf("failed to read edited content: %w", err)
+	}
+
+	// Write to original file atomically using a backup
+	backupPath := originalPath + ".backup"
+
+	// Create backup of original
+	if err := copyFile(originalPath, backupPath); err != nil {
+		return fmt.Errorf("failed to create backup: %w", err)
+	}
+
+	// Ensure backup is cleaned up after successful write
+	defer os.Remove(backupPath)
+
+	// Write new content to original file
+	if err := os.WriteFile(originalPath, editedContent, originalInfo.Mode()); err != nil {
+		// Restore from backup on write failure
+		if restoreErr := copyFile(backupPath, originalPath); restoreErr != nil {
+			return fmt.Errorf("failed to write changes AND failed to restore backup: write error: %w, restore error: %v", err, restoreErr)
+		}
+		return fmt.Errorf("failed to write changes (backup restored): %w", err)
+	}
+
+	fmt.Printf("Successfully saved changes to %s\n", originalPath)
 	return nil
+}
+
+// copyFile copies a file from src to dst
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := io.Copy(destFile, sourceFile); err != nil {
+		return err
+	}
+
+	// Sync to ensure data is written to disk
+	return destFile.Sync()
 }
 
 // getEditor determines the default editor to use
