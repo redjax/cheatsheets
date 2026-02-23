@@ -5,6 +5,7 @@ import (
 	"os"
 
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
+	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
 	repocommand "github.com/redjax/cheatsheets/internal/commands/repoCommand"
 	"github.com/spf13/cobra"
 )
@@ -34,6 +35,7 @@ func Execute() {
 func init() {
 	// Register subcommands
 	rootCmd.AddCommand(debugcommand.DebugCmd)
+	rootCmd.AddCommand(listcommand.ListCmd)
 	rootCmd.AddCommand(repocommand.RepoCmd)
 
 	// Global persistent flags
