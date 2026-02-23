@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	cdcommand "github.com/redjax/cheatsheets/internal/commands/cdCommand"
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
 	editcommand "github.com/redjax/cheatsheets/internal/commands/editCommand"
 	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
@@ -37,6 +38,7 @@ func Execute() {
 
 func init() {
 	// Register subcommands
+	rootCmd.AddCommand(cdcommand.CdCmd)
 	rootCmd.AddCommand(debugcommand.DebugCmd)
 	rootCmd.AddCommand(editcommand.EditCmd)
 	rootCmd.AddCommand(listcommand.ListCmd)
