@@ -7,6 +7,7 @@ import (
 	cdcommand "github.com/redjax/cheatsheets/internal/commands/cdCommand"
 	cleanupcommand "github.com/redjax/cheatsheets/internal/commands/cleanupCommand"
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
+	deletecommand "github.com/redjax/cheatsheets/internal/commands/deleteCommand"
 	editcommand "github.com/redjax/cheatsheets/internal/commands/editCommand"
 	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
 	newcommand "github.com/redjax/cheatsheets/internal/commands/newCommand"
@@ -43,6 +44,7 @@ func init() {
 	rootCmd.AddCommand(cdcommand.CdCmd)
 	rootCmd.AddCommand(cleanupcommand.CleanupCmd)
 	rootCmd.AddCommand(debugcommand.DebugCmd)
+	rootCmd.AddCommand(deletecommand.DeleteCmd)
 	rootCmd.AddCommand(editcommand.EditCmd)
 	rootCmd.AddCommand(listcommand.ListCmd)
 	rootCmd.AddCommand(newcommand.NewCmd)

@@ -437,3 +437,20 @@ func CreateCheatsheet(repoPath string, opts CreateCheatsheetOptions) (string, er
 
 	return targetFile, nil
 }
+
+// DeleteCheatsheet deletes a cheatsheet file
+func DeleteCheatsheet(repoPath, cheatsheetType, name string) error {
+	filePath := GetCheatsheetPath(repoPath, cheatsheetType, name)
+
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("cheatsheet not found: %s", filePath)
+	}
+
+	// Delete the file
+	if err := os.Remove(filePath); err != nil {
+		return fmt.Errorf("failed to delete cheatsheet: %w", err)
+	}
+
+	return nil
+}
