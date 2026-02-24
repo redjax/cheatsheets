@@ -1,0 +1,98 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+project_name: chtsht
+
+dist: dist
+
+git:
+  tag_sort: -version:refname
+
+before:
+  hooks:
+    - sh -c "cd app && go mod tidy"
+    - sh -c "cd app && go generate ./..."
+
+builds:
+  - id: chtsht
+    binary: chtsht
+    main: ./cmd/chtsht/main.go
+    dir: ./app
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    flags:
+      - -trimpath
+    env:
+      - CGO_ENABLED=0
+    ldflags:
+      - -s -w
+      - -X 'github.com/redjax/cheatsheets/internal/version.Version={{.Version}}'
+      - -X 'github.com/redjax/cheatsheets/internal/version.Commit={{.Commit}}'
+      - -X 'github.com/redjax/cheatsheets/internal/version.Date={{.Date}}'
+
+archives:
+  - id: chtsht-archives
+    builds:
+      - chtsht
+    ## Custom naming to match self-upgrade expectations: chtsht-<os>-<arch>-<version>.zip
+    name_template: >-
+      chtsht-
+      {{- if eq .Os "darwin" }}macOS
+      {{- else }}{{ .Os }}{{ end }}-
+      {{- .Arch }}-
+      {{- .Version }}
+    ## Use zip for all platforms (self-upgrade expects .zip)
+    format: zip
+    ## Only include the binary (no README/LICENSE to avoid confusion)
+    files:
+      - none*
+
+changelog:
+  sort: asc
+  use: github
+  groups:
+    - title: "Features"
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: "Bug Fixes"
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: "Refactoring"
+      regexp: '^.*?refactor(\([[:word:]]+\))??!?:.+$'
+      order: 2
+    - title: "Documentation"
+      regexp: '^.*?docs(\([[:word:]]+\))??!?:.+$'
+      order: 3
+    - title: "Repository Changes"
+      regexp: '^.*?repo(\([[:word:]]+\))??!?:.+$'
+      order: 4
+    - title: "Other Changes"
+      regexp: '^.*?chore(\([[:word:]]+\))??!?:.+$'
+      order: 5
+  filters:
+    exclude:
+      - "^test:"
+      - "^ci:"
+      - "Merge pull request"
+      - "Merge branch"
+
+release:
+  footer: >-
+
+    ---
+
+    Released by [GoReleaser](https://github.com/goreleaser/goreleaser).

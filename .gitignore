@@ -1,1 +1,16 @@
+.env
+*.local
+*.local.*
 
+chtsht
+chtsht.exe
+
+bin/
+dist/
+build/
+
+!.scripts/
+!.scripts/build/
+
+!*example*.*
+!*.*example*

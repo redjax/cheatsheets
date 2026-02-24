@@ -1,0 +1,8 @@
+---
+debug: true
+sheets_path: "~/.cheatsheets"
+
+git:
+  repo_url: "" # Optional, can be set to override the default repository URL
+  clone_path: "" # Optional, can be set to specify where to clone the repository
+  token: "" # Optional
