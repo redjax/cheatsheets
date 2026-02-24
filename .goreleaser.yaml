@@ -13,6 +13,9 @@ dist: dist
 
 git:
   tag_sort: -version:refname
+  ## Only process version tags starting with 'v' (ignore date-based cheatsheet tags)
+  ignore_tags:
+    - '^[0-9]{8}-.*$'
 
 before:
   hooks:
