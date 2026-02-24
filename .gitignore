@@ -2,5 +2,12 @@
 *.local
 *.local.*
 
+chtsht
+chtsht.exe
+
+bin/
+dist/
+build/
+
 !*example*.*
 !*.*example*
