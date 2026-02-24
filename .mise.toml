@@ -5,3 +5,5 @@ python = "3.14.2"
 "aqua:psf/black" = "latest"
 ## https://mise-versions.jdx.dev/tools/go
 go = "1.26.0"
+## https://mise-tools.jdx.dev/tools/goreleaser
+goreleaser = "latest"
