@@ -1,5 +1,5 @@
 ---
-name: Create Release
+name: Releast Cheatsheets Archive
 
 on:
   workflow_dispatch:

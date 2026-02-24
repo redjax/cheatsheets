@@ -1,0 +1,172 @@
+---
+name: Release App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      has_changes: ${{ steps.check.outputs.has_changes }}
+      bump_type: ${{ steps.detect_bump.outputs.bump_type }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in app/
+        id: check
+        if: github.event_name == 'push'
+        run: |
+          LATEST_APP_TAG=$(git tag -l 'v*' --sort=-version:refname | head -n 1 || echo "")
+          
+          if [ -z "$LATEST_APP_TAG" ]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "No previous app releases found - will create first release"
+          else
+            CHANGES=$(git diff --name-only "$LATEST_APP_TAG" HEAD -- 'app/**/*.go' app/go.mod app/go.sum | wc -l)
+            
+            if [ "$CHANGES" -gt 0 ]; then
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+              echo "Found $CHANGES changed Go file(s) in app/ since $LATEST_APP_TAG"
+              git diff --name-only "$LATEST_APP_TAG" HEAD -- 'app/**/*.go' app/go.mod app/go.sum
+            else
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+              echo "No Go file changes in app/ since $LATEST_APP_TAG"
+            fi
+          fi
+
+      - name: Detect version bump from commits
+        id: detect_bump
+        if: github.event_name == 'push' && steps.check.outputs.has_changes == 'true'
+        run: |
+          LATEST_APP_TAG=$(git tag -l 'v*' --sort=-version:refname | head -n 1 || echo "")
+          
+          if [ -z "$LATEST_APP_TAG" ]; then
+            # First release
+            echo "bump_type=patch" >> $GITHUB_OUTPUT
+            echo "First release - defaulting to patch bump (0.0.1)"
+          else
+            ## Get commits since last tag
+            COMMITS=$(git log "$LATEST_APP_TAG"..HEAD --oneline)
+            
+            ## Check for feat() - minor bump
+            if echo "$COMMITS" | grep -qE '^[a-f0-9]+ feat(\(|:)'; then
+              echo "bump_type=minor" >> $GITHUB_OUTPUT
+              echo "Found feat() commit - will bump minor version (0.X.0)"
+            ## Check for fix() - patch bump
+            elif echo "$COMMITS" | grep -qE '^[a-f0-9]+ fix(\(|:)'; then
+              echo "bump_type=patch" >> $GITHUB_OUTPUT
+              echo "Found fix() commit - will bump patch version (0.0.X)"
+            else
+              echo "bump_type=patch" >> $GITHUB_OUTPUT
+              echo "No semantic commit found - defaulting to patch bump"
+            fi
+          fi
+
+  release:
+    needs: check-changes
+    if: |
+      (github.event_name == 'push' && needs.check-changes.outputs.has_changes == 'true') ||
+      github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          LATEST_APP_TAG=$(git tag -l 'v*' --sort=-version:refname | head -n 1 || echo "v0.0.0")
+          
+          ## Strip 'v' prefix
+          CURRENT_VERSION="${LATEST_APP_TAG#v}"
+          
+          ## Parse version parts
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          ## Determine bump type
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            BUMP_TYPE="${{ github.event.inputs.bump }}"
+          else
+            BUMP_TYPE="${{ needs.check-changes.outputs.bump_type }}"
+          fi
+          
+          ## Bump version
+          case "$BUMP_TYPE" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          echo "bump_type=${BUMP_TYPE}" >> $GITHUB_OUTPUT
+          echo "Bumping ${BUMP_TYPE}: ${LATEST_APP_TAG} → ${NEW_VERSION}"
+
+      - name: Check if tag exists
+        run: |
+          if git rev-parse "${{ steps.next_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Error: Tag ${{ steps.next_version.outputs.version }} already exists"
+            exit 1
+          fi
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache-dependency-path: app/go.sum
+
+      - name: Create and push tag
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git tag -a "${{ steps.next_version.outputs.version }}" -m "Release ${{ steps.next_version.outputs.version }} (${{ steps.next_version.outputs.bump_type }} bump)"
+          git push origin "${{ steps.next_version.outputs.version }}"
+          
+          echo "Created and pushed tag: ${{ steps.next_version.outputs.version }}"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dist
+          path: dist/
