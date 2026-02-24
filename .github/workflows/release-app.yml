@@ -96,13 +96,25 @@ jobs:
       - name: Calculate next version
         id: next_version
         run: |
-          LATEST_APP_TAG=$(git tag -l 'v*' --sort=-version:refname | head -n 1 || echo "v0.0.0")
+          LATEST_APP_TAG=$(git tag -l 'v*' --sort=-version:refname | head -n 1)
+          
+          ## Default to v0.0.0 if no tags exist
+          if [ -z "$LATEST_APP_TAG" ]; then
+            LATEST_APP_TAG="v0.0.0"
+            echo "No existing version tags found, starting from v0.0.0"
+          fi
           
           ## Strip 'v' prefix
           CURRENT_VERSION="${LATEST_APP_TAG#v}"
+          echo "Current version: $CURRENT_VERSION"
           
-          ## Parse version parts
+          ## Parse version parts with defaults
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+          
+          echo "Parsed: MAJOR=$MAJOR MINOR=$MINOR PATCH=$PATCH"
           
           ## Determine bump type
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
@@ -110,6 +122,8 @@ jobs:
           else
             BUMP_TYPE="${{ needs.check-changes.outputs.bump_type }}"
           fi
+          
+          echo "Bump type: $BUMP_TYPE"
           
           ## Bump version
           case "$BUMP_TYPE" in
