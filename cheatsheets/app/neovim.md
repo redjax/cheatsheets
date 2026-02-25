@@ -12,6 +12,7 @@ tags: ["neovim", "app", "cli", "tui"]
 
 - [Usage](#usage)
   - [CLI args](#cli-args)
+  - [Search](#search)
 
 ## Usage
 
