@@ -32,7 +32,7 @@ var SyncCmd = &cobra.Command{
 		var cfg *config.Config
 		if configFile == "" {
 			// Use FindConfigFile for .local fallback
-			configFile = config.FindConfigFile("config.yml")
+			configFile = config.FindConfigFile("")
 			cfg, err = config.LoadConfig(nil, configFile)
 		} else {
 			// Use explicit file
@@ -50,7 +50,19 @@ var SyncCmd = &cobra.Command{
 		}
 
 		if !cloned {
-			return fmt.Errorf("repository is not cloned at %s. Run 'chtsht repo clone' first", cfg.Git.ClonePath)
+			// Auto-clone the repository
+			fmt.Println("=== Repository Not Found ===")
+			fmt.Println("Cloning repository automatically...")
+			fmt.Printf("Repository URL: %s\n", cfg.Git.RepoUrl)
+			fmt.Printf("Clone Path: %s\n\n", cfg.Git.ClonePath)
+
+			err = reposervices.CloneRepository(cfg.Git.RepoUrl, cfg.Git.ClonePath, cfg.Git.Token)
+			if err != nil {
+				return fmt.Errorf("failed to clone repository: %w", err)
+			}
+
+			fmt.Println("Repository cloned successfully")
+			fmt.Println()
 		}
 
 		// Use flag value if provided, otherwise use config value
