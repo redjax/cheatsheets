@@ -106,12 +106,17 @@ func CreateSync(repoPath, sheetsPath string, force bool) error {
 
 	// If exists and valid, nothing to do (unless force)
 	if status.Exists && status.IsValid && !force {
-		return fmt.Errorf("destination already exists and is valid. Use --force to recreate")
+		fmt.Println("✓ Sync already exists and is valid")
+		return nil
 	}
 
 	// If exists, remove it (either force, invalid, or wrong type)
 	if status.Exists {
-		fmt.Printf("Removing existing destination: %s\n", sheetsPath)
+		if force {
+			fmt.Printf("Removing existing destination (--force): %s\n", sheetsPath)
+		} else {
+			fmt.Printf("Removing invalid destination: %s\n", sheetsPath)
+		}
 		if err := os.RemoveAll(sheetsPath); err != nil {
 			return fmt.Errorf("error removing existing destination: %w", err)
 		}
