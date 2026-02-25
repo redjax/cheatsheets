@@ -127,11 +127,11 @@ func CreateSync(repoPath, sheetsPath string, force bool) error {
 	if runtime.GOOS != "windows" {
 		err := os.Symlink(sourcePath, sheetsPath)
 		if err == nil {
-			fmt.Printf("✓ Created symlink: %s -> %s\n", sheetsPath, sourcePath)
+			fmt.Printf("Created symlink: %s -> %s\n", sheetsPath, sourcePath)
 			return nil
 		}
 		fmt.Printf("⚠ Failed to create symlink: %v\n", err)
-		fmt.Println("Falling back to copy...")
+		fmt.Println("Falling back to copy")
 	}
 
 	// Fall back to copying
@@ -140,7 +140,7 @@ func CreateSync(repoPath, sheetsPath string, force bool) error {
 
 // CopyDirectory recursively copies a directory tree
 func CopyDirectory(src, dst string) error {
-	fmt.Printf("Copying %s to %s...\n", src, dst)
+	fmt.Printf("Copying %s to %s\n", src, dst)
 
 	// Get source directory info
 	srcInfo, err := os.Stat(src)
@@ -177,7 +177,7 @@ func CopyDirectory(src, dst string) error {
 		}
 	}
 
-	fmt.Printf("✓ Copied directory: %s\n", dst)
+	fmt.Printf("Copied directory: %s\n", dst)
 	return nil
 }
 
@@ -221,13 +221,13 @@ func UpdateSync(repoPath, sheetsPath string) error {
 
 	// If it's a symlink, it's always up to date
 	if status.Type == SyncTypeSymlink {
-		fmt.Println("✓ Symlink is always up to date")
+		fmt.Println("Symlink is always up to date")
 		return nil
 	}
 
 	// If it's a copy, we need to re-copy
 	if status.Type == SyncTypeCopy {
-		fmt.Println("Updating copied cheatsheets...")
+		fmt.Println("Updating copied cheatsheets")
 		return CreateSync(repoPath, sheetsPath, true)
 	}
 

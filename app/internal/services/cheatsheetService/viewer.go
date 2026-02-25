@@ -310,7 +310,7 @@ func (m viewerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m viewerModel) View() string {
 	if !m.ready {
-		return "\n  Initializing..."
+		return "\n  Initializing"
 	}
 
 	headerStyle := lipgloss.NewStyle().
@@ -379,7 +379,7 @@ func ShowInViewer(rawMarkdown string) error {
 
 	// Initialize search input
 	ti := textinput.New()
-	ti.Placeholder = "Search..."
+	ti.Placeholder = "Search"
 	ti.CharLimit = 100
 
 	// Display in the TUI viewer

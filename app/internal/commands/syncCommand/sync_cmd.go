@@ -70,7 +70,7 @@ var SyncCmd = &cobra.Command{
 		}
 
 		fmt.Println()
-		fmt.Println("✓ Sync completed successfully")
+		fmt.Println("Sync completed successfully")
 		return nil
 	},
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/redjax/cheatsheets/internal/config"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
+	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
 
@@ -63,6 +64,18 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
 	}
 
+	// Auto-switch to working branch if enabled and on main
+	if cfg.Git.AutoBranch {
+		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
+		if err == nil && (currentBranch == "main" || currentBranch == "master") {
+			workingBranch := cfg.Git.WorkingBranch
+			if workingBranch == "" {
+				workingBranch = "working"
+			}
+			_, _ = reposervices.EnsureWorkingBranch(repoPath, workingBranch)
+		}
+	}
+
 	// If no name provided, show selector
 	if len(args) == 0 {
 		return deleteWithSelector(repoPath, typeFilter, force)
@@ -101,7 +114,7 @@ func deleteCheatsheet(repoPath, cheatsheetType, name string, skipConfirm bool) e
 		return err
 	}
 
-	fmt.Printf("✓ Deleted [%s] %s\n", cheatsheetType, name)
+	fmt.Printf("Deleted [%s] %s\n", cheatsheetType, name)
 	return nil
 }
 
@@ -159,7 +172,7 @@ func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | red }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | red }}",
+		Selected: "{{ .Display | red }}",
 	}
 
 	prompt := promptui.Select{
@@ -248,7 +261,7 @@ func deleteWithSelector(repoPath, typeFilter string, skipConfirm bool) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | red }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | red }}",
+		Selected: "{{ .Display | red }}",
 	}
 
 	prompt := promptui.Select{

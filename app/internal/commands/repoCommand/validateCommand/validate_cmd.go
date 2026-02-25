@@ -53,7 +53,7 @@ var ValidateCmd = &cobra.Command{
 
 		// Display results
 		if status.IsCloned {
-			fmt.Println("✓ Repository is cloned")
+			fmt.Println("Repository is cloned")
 			fmt.Printf("  Current branch: %s\n", status.CurrentBranch)
 		} else {
 			fmt.Println("✗ Repository is NOT cloned")
@@ -81,7 +81,7 @@ var ValidateCmd = &cobra.Command{
 				}
 
 				fmt.Println()
-				fmt.Println("✓ Repository cloned successfully")
+				fmt.Println("Repository cloned successfully")
 			} else {
 				fmt.Println("\nSkipping clone. Run 'repo clone' when ready.")
 			}
@@ -90,7 +90,7 @@ var ValidateCmd = &cobra.Command{
 		}
 
 		if status.IsClean {
-			fmt.Println("✓ Working tree is clean")
+			fmt.Println("Working tree is clean")
 		} else {
 			fmt.Println("✗ Working tree has uncommitted changes")
 		}
@@ -99,14 +99,14 @@ var ValidateCmd = &cobra.Command{
 			fmt.Println("⚠ Remote has updates available")
 			fmt.Println("  Run 'repo update' to pull the latest changes")
 		} else {
-			fmt.Println("✓ Repository is up to date with remote")
+			fmt.Println("Repository is up to date with remote")
 		}
 
 		fmt.Println()
 
 		// Summary
 		if status.IsClean && !status.HasRemoteUpdates {
-			fmt.Println("✓ Repository is in good state")
+			fmt.Println("Repository is in good state")
 		} else {
 			fmt.Println("⚠ Repository needs attention")
 		}

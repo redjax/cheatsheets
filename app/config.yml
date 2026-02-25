@@ -6,3 +6,7 @@ git:
   repo_url: "" # Optional, can be set to override the default repository URL
   clone_path: "" # Optional, can be set to specify where to clone the repository
   token: "" # Optional
+  auto_branch: true # Automatically switch to shared working branch
+  working_branch: "working" # Shared branch for all machines (instead of main)
+  author_name: "" # Optional, falls back to git config user.name
+  author_email: "" # Optional, falls back to git config user.email

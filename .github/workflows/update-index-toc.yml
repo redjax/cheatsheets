@@ -117,4 +117,4 @@ jobs:
       - name: Skip - No changes detected
         if: steps.check_changes.outputs.new_files == 'false' && steps.check_changes.outputs.modified_files == 'false'
         run: |
-          echo "✓ No new or modified cheatsheets detected - skipping"
+          echo "No new or modified cheatsheets detected - skipping"

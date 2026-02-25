@@ -16,3 +16,108 @@ Clone the repository to a directory, i.e. `~/.cheatsheets`:
 git clone git@github.com:redjax/cheatsheets.git ~/.cheatsheets
 ```
 
+## CLI Tool
+
+The `app/` directory contains a Go CLI tool for managing cheatsheets.
+
+The CLI tool clones a "working copy" of the repository to a location defined in your config (default: `~/.local/share/cheatsheets` on Linux/Mac, `%APPDATA%\cheatsheets` on Windows). It checks out a branch named `working` so any changes you made can be safely merged into main when ready.
+
+You can `cd` to the `chtsht`-managed repository using `chtsht cd`, and synchronize changes with `chtsht sync`.
+
+### Installation
+
+Check the [releases page](https://github.com/redjax/cheatsheets/releases), look for releases with `v0.0.0` tags (the Go app). Cheatsheet releases are tagged like `Cheatsheets <date>-<shorthash>`.
+
+### Build from source
+
+```shell
+cd app/
+go build -o chtsht ./cmd/chtsht/
+# Move the chtsht binary to a location on your $PATH or use ./chtsht
+```
+
+### Configuration
+
+Copy `config.yml` to `config.local.yml` and edit with your settings:
+
+```yaml
+git:
+  repo_url: "https://github.com/your-username/cheatsheets.git"
+  token: "your-github-token"  # For push access
+  auto_branch: true
+  working_branch: "working"
+```
+
+### Usage
+
+> [!NOTE]
+> Use `chtsht -h` to see help menu
+
+View available cheatsheets:
+
+```shell
+chtsht list
+chtsht list --type app
+```
+
+Edit a cheatsheet:
+
+```shell
+chtsht edit app/neovim
+```
+
+Create new cheatsheet:
+
+```shell
+chtsht new --type language --name rust
+```
+
+Delete cheatsheet:
+
+```shell
+chtsht delete app/helix
+```
+
+### Git Workflow
+
+The tool uses a working branch workflow. Edit on the `working` branch, merge to `main` when ready.
+
+Check status:
+
+```shell
+chtsht repo status
+```
+
+Stage, commit, push changes:
+
+```shell
+chtsht repo stage --all
+chtsht repo commit -m "message"
+chtsht repo push
+```
+
+Or sync in one command:
+
+```shell
+chtsht repo sync -m "message"
+```
+
+Pull latest changes:
+
+```shell
+chtsht repo pull
+```
+
+Merge working branch to main:
+
+```shell
+chtsht repo merge-to-main
+```
+
+Branch management:
+
+```shell
+chtsht repo branch list
+chtsht repo branch ensure  # Create/switch to working branch
+chtsht repo branch switch main
+```
