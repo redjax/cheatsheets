@@ -105,7 +105,7 @@ var StatusCmd = &cobra.Command{
 			if len(status.StagedFiles) > 0 {
 				fmt.Println("Staged for commit:")
 				for _, file := range status.StagedFiles {
-					fmt.Printf("  ✓ %s\n", file)
+					fmt.Printf("  %s\n", file)
 				}
 				fmt.Println()
 			}

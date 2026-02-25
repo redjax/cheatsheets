@@ -160,19 +160,19 @@ var EnsureCmd = &cobra.Command{
 			return fmt.Errorf("you have uncommitted changes. Commit or stash them before switching branches")
 		}
 
-		// Get branch prefix from config or use default
-		prefix := cfg.Git.BranchPrefix
-		if prefix == "" {
-			prefix = "local"
+		// Get working branch from config or use default
+		workingBranch := cfg.Git.WorkingBranch
+		if workingBranch == "" {
+			workingBranch = "working"
 		}
 
-		// Ensure machine branch
-		branchName, err := reposervices.EnsureMachineBranch(cfg.Git.ClonePath, prefix)
+		// Ensure working branch
+		branchName, err := reposervices.EnsureWorkingBranch(cfg.Git.ClonePath, workingBranch)
 		if err != nil {
-			return fmt.Errorf("failed to ensure machine branch: %w", err)
+			return fmt.Errorf("failed to ensure working branch: %w", err)
 		}
 
-		fmt.Printf("✓ Now on branch '%s'\n", branchName)
+		fmt.Printf("Now on branch '%s'\n", branchName)
 
 		return nil
 	},
@@ -242,7 +242,7 @@ var SwitchCmd = &cobra.Command{
 			return fmt.Errorf("failed to switch branch: %w", err)
 		}
 
-		fmt.Printf("✓ Switched to branch '%s'\n", branchName)
+		fmt.Printf("Switched to branch '%s'\n", branchName)
 
 		return nil
 	},

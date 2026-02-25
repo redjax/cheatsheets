@@ -71,15 +71,15 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("repository path does not exist: %s\nRun 'chtsht repo clone' first", repoPath)
 	}
 
-	// Auto-switch to machine branch if enabled and on main
+	// Auto-switch to working branch if enabled and on main
 	if cfg.Git.AutoBranch {
 		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
 		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			prefix := cfg.Git.BranchPrefix
-			if prefix == "" {
-				prefix = "local"
+			workingBranch := cfg.Git.WorkingBranch
+			if workingBranch == "" {
+				workingBranch = "working"
 			}
-			_, _ = reposervices.EnsureMachineBranch(repoPath, prefix)
+			_, _ = reposervices.EnsureWorkingBranch(repoPath, workingBranch)
 		}
 	}
 
@@ -153,6 +153,6 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("\n✓ Successfully created %s\n", targetFile)
+	fmt.Printf("\nSuccessfully created %s\n", targetFile)
 	return nil
 }

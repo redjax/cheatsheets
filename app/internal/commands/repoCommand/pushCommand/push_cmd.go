@@ -77,7 +77,7 @@ Examples:
 			fmt.Printf("Setting upstream for new branch '%s'\n", branch)
 		}
 
-		fmt.Printf("Pushing branch '%s' to origin...\n", branch)
+		fmt.Printf("Pushing branch '%s' to origin\n", branch)
 
 		// Push
 		err = reposervices.PushBranch(cfg.Git.ClonePath, branch, cfg.Git.Token, setUpstream)
@@ -85,7 +85,7 @@ Examples:
 			return fmt.Errorf("failed to push: %w", err)
 		}
 
-		fmt.Printf("✓ Successfully pushed '%s' to origin\n", branch)
+		fmt.Printf("Successfully pushed '%s' to origin\n", branch)
 
 		return nil
 	},

@@ -112,7 +112,7 @@ if ! command -v git-filter-repo >/dev/null 2>&1; then
 
   ## Install with uv, if available
   if command -v uv >/dev/null 2>&1; then
-    echo "uv found. Installing git-filter-repo as a tool..."
+    echo "uv found. Installing git-filter-repo as a tool"
     uv tool install git-filter-repo
     export PATH="$HOME/.local/bin:$PATH"
   fi
@@ -123,7 +123,7 @@ if ! command -v git-filter-repo >/dev/null 2>&1; then
   fi
 
   ## Fallback to Python
-  echo "Using $PYTHON_BIN to install git-filter-repo via pip..."
+  echo "Using $PYTHON_BIN to install git-filter-repo via pip"
   "$PYTHON_BIN" -m pip install --user git-filter-repo
   export PATH="$HOME/.local/bin:$PATH"
 fi
@@ -214,7 +214,7 @@ echo "Mirror cloning repository into temporary directory: $TMP_DIR"
 git clone --mirror "$REPO_URL" "$TMP_DIR/repo"
 cd "$TMP_DIR/repo"
 
-echo "Rewriting commit history emails with git-filter-repo..."
+echo "Rewriting commit history emails with git-filter-repo"
 ## Read history with source username/email, replace with target
 COMMIT_CALLBACK="
 if commit.author_email.decode('utf-8') == '$SRC_EMAIL':
@@ -243,20 +243,20 @@ echo "$COMMIT_CALLBACK"
 git filter-repo --force --commit-callback "$COMMIT_CALLBACK"
 
 echo "git filter-repo completed successfully"
-echo "Verifying first few commits after rewrite..."
+echo "Verifying first few commits after rewrite"
 git log --all --pretty=format:"%h %ad %an <%ae>" --date=iso -5
 
-echo "Removing backup refs..."
+echo "Removing backup refs"
 ##  Remove all refs with old data
 git for-each-ref --format='%(refname)' refs/original | xargs -r git update-ref -d
 git for-each-ref --format='%(refname)' refs/backup | xargs -r git update-ref -d
 
-echo "Expiring reflogs and pruning unreachable objects..."
+echo "Expiring reflogs and pruning unreachable objects"
 ## Expire old data locally before pushing
 git reflog expire --expire=now --all
 git gc --prune=now --aggressive
 
-echo "Verifying no lingering commits with source email anywhere..."
+echo "Verifying no lingering commits with source email anywhere"
 
 ## Get list of commits with source email
 SOURCE_COMMITS=$(git for-each-ref --format='%(refname)' | while read -r ref; do
@@ -280,15 +280,15 @@ if [[ -n "$SOURCE_COMMITS" ]]; then
   exit 2
 fi
 
-echo "Removing local refs under refs/merge-requests/ to avoid push errors..."
+echo "Removing local refs under refs/merge-requests/ to avoid push errors"
 ## Remove all refs under refs/merge-requests/
 git for-each-ref --format='%(refname)' refs/merge-requests | xargs -r -n 1 git update-ref -d || true
 
-echo "Adding remote origin after filter-repo cleanup..."
+echo "Adding remote origin after filter-repo cleanup"
 ## Re-add origin (git-filter-repo removes it)
 git remote add origin "$REPO_URL"
 
-echo "Pushing all branches and tags to origin forcibly..."
+echo "Pushing all branches and tags to origin forcibly"
 ## Push rewritten histories back up
 if [[ -n "${FORCE_PUSH:-}" ]]; then
   if ! git push origin --force --all; then

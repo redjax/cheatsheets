@@ -64,7 +64,7 @@ var StatusCmd = &cobra.Command{
 			return nil
 		}
 
-		fmt.Printf("✓ Sync exists\n")
+		fmt.Printf("Sync exists\n")
 		fmt.Printf("  Type: %s\n", status.Type)
 
 		if status.IsValid {

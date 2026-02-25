@@ -65,7 +65,7 @@ Examples:
 			}
 
 			if !clean {
-				fmt.Println("Staging all changes...")
+				fmt.Println("Staging all changes")
 				err = reposervices.StageAll(cfg.Git.ClonePath)
 				if err != nil {
 					return fmt.Errorf("failed to stage changes: %w", err)
@@ -95,7 +95,7 @@ Examples:
 			return fmt.Errorf("failed to get current branch: %w", err)
 		}
 
-		fmt.Printf("Committing %d file(s) on branch '%s'...\n", len(staged), branch)
+		fmt.Printf("Committing %d file(s) on branch '%s'\n", len(staged), branch)
 
 		// Create commit
 		hash, err := reposervices.CommitChanges(cfg.Git.ClonePath, message, authorName, authorEmail)
@@ -103,7 +103,7 @@ Examples:
 			return fmt.Errorf("failed to create commit: %w", err)
 		}
 
-		fmt.Printf("✓ Created commit %s\n", hash)
+		fmt.Printf("Created commit %s\n", hash)
 		fmt.Printf("  Author: %s <%s>\n", authorName, authorEmail)
 		fmt.Printf("  Message: %s\n", message)
 		fmt.Println("\nNext: chtsht repo push")

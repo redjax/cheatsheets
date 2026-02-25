@@ -64,15 +64,15 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
 	}
 
-	// Auto-switch to machine branch if enabled and on main
+	// Auto-switch to working branch if enabled and on main
 	if cfg.Git.AutoBranch {
 		currentBranch, err := reposervices.GetCurrentBranch(cfg.Git.ClonePath)
 		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			prefix := cfg.Git.BranchPrefix
-			if prefix == "" {
-				prefix = "local"
+			workingBranch := cfg.Git.WorkingBranch
+			if workingBranch == "" {
+				workingBranch = "working"
 			}
-			_, _ = reposervices.EnsureMachineBranch(cfg.Git.ClonePath, prefix)
+			_, _ = reposervices.EnsureWorkingBranch(cfg.Git.ClonePath, workingBranch)
 		}
 	}
 
@@ -201,7 +201,7 @@ func openInEditor(originalPath string) error {
 		return fmt.Errorf("failed to stat original file: %w", err)
 	}
 
-	fmt.Printf("Opening %s in %s...\n", filepath.Base(originalPath), editor)
+	fmt.Printf("Opening %s in %s\n", filepath.Base(originalPath), editor)
 
 	// Create command to open editor with temp file
 	cmd := exec.Command(editor, tempPath)

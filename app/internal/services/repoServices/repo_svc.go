@@ -372,8 +372,64 @@ func CheckoutBranch(path, branchName string) error {
 	return nil
 }
 
-// EnsureMachineBranch ensures the machine-specific branch exists and is checked out.
+// MergeBranch merges the specified branch into the current branch.
+// Uses git command-line since go-git doesn't have built-in merge support.
+func MergeBranch(path, branchName string) error {
+	// Use git merge command
+	cmd := exec.Command("git", "-C", path, "merge", branchName, "--no-edit")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("merge failed: %w\nOutput: %s", err, string(output))
+	}
+
+	return nil
+}
+
+// EnsureWorkingBranch ensures the shared working branch exists and is checked out.
 // Returns the branch name that was ensured.
+func EnsureWorkingBranch(path, branchName string) (string, error) {
+	if branchName == "" {
+		branchName = "working"
+	}
+
+	// Get current branch
+	currentBranch, err := GetCurrentBranch(path)
+	if err != nil {
+		return "", err
+	}
+
+	// If already on the working branch, we're done
+	if currentBranch == branchName {
+		return branchName, nil
+	}
+
+	// Check if working branch exists
+	exists, err := BranchExists(path, branchName)
+	if err != nil {
+		return "", err
+	}
+
+	if exists {
+		// Branch exists, just switch to it
+		err = CheckoutBranch(path, branchName)
+		if err != nil {
+			return "", fmt.Errorf("failed to switch to working branch: %w", err)
+		}
+		fmt.Printf("Switched to existing branch '%s'\n", branchName)
+	} else {
+		// Create and switch to new branch
+		err = CreateAndCheckoutBranch(path, branchName)
+		if err != nil {
+			return "", fmt.Errorf("failed to create working branch: %w", err)
+		}
+		fmt.Printf("Created and switched to new branch '%s'\n", branchName)
+	}
+
+	return branchName, nil
+}
+
+// EnsureMachineBranch is deprecated. Use EnsureWorkingBranch instead.
+// Kept for backward compatibility.
 func EnsureMachineBranch(path, prefix string) (string, error) {
 	// Get hostname
 	hostname, err := os.Hostname()

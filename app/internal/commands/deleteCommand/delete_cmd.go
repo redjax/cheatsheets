@@ -64,15 +64,15 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
 	}
 
-	// Auto-switch to machine branch if enabled and on main
+	// Auto-switch to working branch if enabled and on main
 	if cfg.Git.AutoBranch {
 		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
 		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			prefix := cfg.Git.BranchPrefix
-			if prefix == "" {
-				prefix = "local"
+			workingBranch := cfg.Git.WorkingBranch
+			if workingBranch == "" {
+				workingBranch = "working"
 			}
-			_, _ = reposervices.EnsureMachineBranch(repoPath, prefix)
+			_, _ = reposervices.EnsureWorkingBranch(repoPath, workingBranch)
 		}
 	}
 
@@ -114,7 +114,7 @@ func deleteCheatsheet(repoPath, cheatsheetType, name string, skipConfirm bool) e
 		return err
 	}
 
-	fmt.Printf("✓ Deleted [%s] %s\n", cheatsheetType, name)
+	fmt.Printf("Deleted [%s] %s\n", cheatsheetType, name)
 	return nil
 }
 
@@ -172,7 +172,7 @@ func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | red }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | red }}",
+		Selected: "{{ .Display | red }}",
 	}
 
 	prompt := promptui.Select{
@@ -261,7 +261,7 @@ func deleteWithSelector(repoPath, typeFilter string, skipConfirm bool) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | red }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | red }}",
+		Selected: "{{ .Display | red }}",
 	}
 
 	prompt := promptui.Select{

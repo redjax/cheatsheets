@@ -59,7 +59,7 @@ var CloneCmd = &cobra.Command{
 		}
 
 		fmt.Println()
-		fmt.Println("✓ Repository cloned successfully")
+		fmt.Println("Repository cloned successfully")
 		return nil
 	},
 }

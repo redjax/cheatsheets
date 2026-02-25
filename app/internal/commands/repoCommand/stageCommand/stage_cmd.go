@@ -65,7 +65,7 @@ Examples:
 
 		// If no files specified or --all flag, stage all
 		if len(args) == 0 || stageAll {
-			fmt.Println("Staging all changes...")
+			fmt.Println("Staging all changes")
 			err = reposervices.StageAll(cfg.Git.ClonePath)
 			if err != nil {
 				return fmt.Errorf("failed to stage changes: %w", err)
@@ -79,19 +79,19 @@ Examples:
 
 			fmt.Printf("Staged %d file(s):\n", len(staged))
 			for _, file := range staged {
-				fmt.Printf("  ✓ %s\n", file)
+				fmt.Printf("  %s\n", file)
 			}
 			fmt.Println("\nNext: chtsht repo commit -m \"your message\"")
 		} else {
 			// Stage specific files
-			fmt.Printf("Staging %d file(s)...\n", len(args))
+			fmt.Printf("Staging %d file(s)\n", len(args))
 			err = reposervices.StageFiles(cfg.Git.ClonePath, args)
 			if err != nil {
 				return fmt.Errorf("failed to stage files: %w", err)
 			}
 
 			for _, file := range args {
-				fmt.Printf("  ✓ %s\n", file)
+				fmt.Printf("  %s\n", file)
 			}
 			fmt.Println("\nNext: chtsht repo commit -m \"your message\"")
 		}

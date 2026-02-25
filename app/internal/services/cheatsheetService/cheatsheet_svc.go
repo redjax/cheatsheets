@@ -261,7 +261,7 @@ func ShowCheatsheetByName(repoPath, name string) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | cyan }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | green }}",
+		Selected: "{{ .Display | green }}",
 	}
 
 	prompt := promptui.Select{
@@ -326,7 +326,7 @@ func ShowCheatsheetSelector(repoPath, typeFilter string) error {
 		Label:    "{{ . }}",
 		Active:   "▸ {{ .Display | cyan }}",
 		Inactive: "  {{ .Display }}",
-		Selected: "✓ {{ .Display | green }}",
+		Selected: "{{ .Display | green }}",
 	}
 
 	prompt := promptui.Select{
