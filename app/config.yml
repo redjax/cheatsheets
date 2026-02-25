@@ -3,7 +3,7 @@ debug: true
 sheets_path: "~/.cheatsheets"
 
 git:
-  repo_url: "" # Optional, can be set to override the default repository URL
+  repo_url: "https://github.com/redjax/cheatsheets"
   clone_path: "" # Optional, can be set to specify where to clone the repository
   token: "" # Optional
   auto_branch: true # Automatically switch to shared working branch
