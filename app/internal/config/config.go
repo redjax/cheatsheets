@@ -17,7 +17,9 @@ import (
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/v2"
 	"github.com/redjax/cheatsheets/internal/constants"
+	"github.com/redjax/cheatsheets/internal/utils"
 	"github.com/spf13/pflag"
+	"golang.org/x/term"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
@@ -48,59 +50,10 @@ func (g GitConfig) String() string {
 	token := "<empty>"
 
 	if g.Token != "" {
-		token = maskToken(g.Token)
+		token = utils.MaskToken(g.Token)
 	}
 
 	return fmt.Sprintf("GitConfig{RepoUrl: %s, ClonePath: %s, Token: %s}", g.RepoUrl, g.ClonePath, token)
-}
-
-// maskToken masks a git token while showing the prefix and first few characters of the secret
-func maskToken(token string) string {
-	if token == "" {
-		return "<empty>"
-	}
-
-	// Common git forge token prefixes
-	prefixes := []string{
-		"github_pat_", // GitHub fine-grained PAT
-		"ghp_",        // GitHub personal access token
-		"gho_",        // GitHub OAuth token
-		"ghu_",        // GitHub user-to-server token
-		"ghs_",        // GitHub server-to-server token
-		"ghr_",        // GitHub refresh token
-		"glpat-",      // GitLab personal access token
-		"gloas-",      // GitLab OAuth application secret
-		"glptt-",      // GitLab project access token
-	}
-
-	// Find matching prefix
-	var prefix string
-	secretStart := 0
-
-	for _, p := range prefixes {
-		if strings.HasPrefix(token, p) {
-			prefix = p
-			secretStart = len(p)
-			break
-		}
-	}
-
-	// If no known prefix, treat entire token as secret
-	if prefix == "" {
-		if len(token) <= 7 {
-			return "***"
-		}
-
-		return token[:7] + "***"
-	}
-
-	// Show prefix + first 7 chars of secret
-	secretPart := token[secretStart:]
-	if len(secretPart) <= 7 {
-		return prefix + "***"
-	}
-
-	return prefix + secretPart[:7] + "***"
 }
 
 // GetDefaultConfigPath returns the default config file path in XDG config directory
@@ -287,8 +240,17 @@ func ensureConfigFile(configFile string) error {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	// Generate default config with env vars
-	configData := createDefaultConfigWithEnvVars()
+	fmt.Println("=== First Time Setup ===")
+	fmt.Printf("Creating config file: %s\n\n", configFile)
+
+	// Prompt for GitHub token if not set via env var
+	token := os.Getenv("CHEATSHEETS_GIT_TOKEN")
+	if token == "" {
+		token = promptForToken()
+	}
+
+	// Generate default config with env vars and prompted token
+	configData := createDefaultConfigWithEnvVars(token)
 
 	// Marshal to YAML
 	data, err := yamlv3.Marshal(configData)
@@ -301,18 +263,19 @@ func ensureConfigFile(configFile string) error {
 		return fmt.Errorf("failed to write config file: %w", err)
 	}
 
+	fmt.Printf("\n✓ Config file created: %s\n", configFile)
 	return nil
 }
 
 // createDefaultConfigWithEnvVars creates a default config map with values from env vars if available
-func createDefaultConfigWithEnvVars() map[string]interface{} {
+func createDefaultConfigWithEnvVars(token string) map[string]interface{} {
 	config := map[string]interface{}{
 		"sheets_path": getEnvOrDefault("CHEATSHEETS_SHEETS_PATH", "~/.cheatsheets"),
 		"debug":       getEnvOrDefault("CHEATSHEETS_DEBUG", "true") == "true",
 		"git": map[string]interface{}{
 			"repo_url":       getEnvOrDefault("CHEATSHEETS_GIT_REPO_URL", constants.RepoURL),
 			"clone_path":     getEnvOrDefault("CHEATSHEETS_GIT_CLONE_PATH", ""),
-			"token":          getEnvOrDefault("CHEATSHEETS_GIT_TOKEN", ""),
+			"token":          token,
 			"auto_branch":    getEnvOrDefault("CHEATSHEETS_GIT_AUTO_BRANCH", "true") == "true",
 			"working_branch": getEnvOrDefault("CHEATSHEETS_GIT_WORKING_BRANCH", "working"),
 			"author_name":    getEnvOrDefault("CHEATSHEETS_GIT_AUTHOR_NAME", ""),
@@ -329,4 +292,25 @@ func getEnvOrDefault(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+// promptForToken prompts the user to enter a GitHub Personal Access Token
+func promptForToken() string {
+	fmt.Println("GitHub Personal Access Token (PAT):")
+	fmt.Println("A PAT is required to clone private repositories and make commits.")
+	fmt.Println("Create one at: https://github.com/settings/tokens")
+	fmt.Println("Required scopes: repo (for private repos)")
+	fmt.Println()
+	fmt.Print("Enter your GitHub PAT (input hidden, or press Enter to skip): ")
+
+	// Read password without echoing to terminal
+	tokenBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println() // Add newline after hidden input
+
+	if err != nil {
+		return ""
+	}
+
+	token := strings.TrimSpace(string(tokenBytes))
+	return token
 }

@@ -2,8 +2,10 @@ package showcommand
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )
@@ -59,8 +61,14 @@ func runShow(cmd *cobra.Command, args []string) error {
 }
 
 func showFullConfig(cfg *config.Config) error {
+	// Create a copy of the config with masked token
+	maskedCfg := *cfg
+	if maskedCfg.Git.Token != "" {
+		maskedCfg.Git.Token = utils.MaskToken(maskedCfg.Git.Token)
+	}
+
 	// Marshal to YAML for display
-	data, err := yaml.Marshal(cfg)
+	data, err := yaml.Marshal(&maskedCfg)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
@@ -77,10 +85,19 @@ func showKey(cfg *config.Config, key string) error {
 		return fmt.Errorf("key not found: %s", key)
 	}
 
+	// Mask token if showing it
+	if key == "git.token" || strings.HasSuffix(key, ".token") {
+		if strValue, ok := value.(string); ok && strValue != "" {
+			value = utils.MaskToken(strValue)
+		}
+	}
+
 	// If it's a complex type (map/struct), show as YAML
 	switch v := value.(type) {
 	case map[string]interface{}:
-		data, err := yaml.Marshal(v)
+		// Mask tokens in map
+		masked := utils.MaskTokensInMap(v)
+		data, err := yaml.Marshal(masked)
 		if err != nil {
 			return fmt.Errorf("failed to marshal value: %w", err)
 		}
