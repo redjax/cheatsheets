@@ -6,6 +6,7 @@ import (
 
 	cdcommand "github.com/redjax/cheatsheets/internal/commands/cdCommand"
 	cleanupcommand "github.com/redjax/cheatsheets/internal/commands/cleanupCommand"
+	configcommand "github.com/redjax/cheatsheets/internal/commands/configCommand"
 	debugcommand "github.com/redjax/cheatsheets/internal/commands/debugCommand"
 	deletecommand "github.com/redjax/cheatsheets/internal/commands/deleteCommand"
 	editcommand "github.com/redjax/cheatsheets/internal/commands/editCommand"
@@ -43,6 +44,7 @@ func init() {
 	// Register subcommands
 	rootCmd.AddCommand(cdcommand.CdCmd)
 	rootCmd.AddCommand(cleanupcommand.CleanupCmd)
+	rootCmd.AddCommand(configcommand.ConfigCmd)
 	rootCmd.AddCommand(debugcommand.DebugCmd)
 	rootCmd.AddCommand(deletecommand.DeleteCmd)
 	rootCmd.AddCommand(editcommand.EditCmd)
@@ -54,5 +56,5 @@ func init() {
 
 	// Global persistent flags
 	// Empty default means "use default with .local fallback"
-	rootCmd.PersistentFlags().StringVarP(&configFile, "config-file", "c", "", "config file path (default: config.yml with .local fallback)")
+	rootCmd.PersistentFlags().StringVarP(&configFile, "config-file", "c", "", "config file path (default: ~/.config/cheatsheets/config.yml)")
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/knadh/koanf/v2"
 	"github.com/redjax/cheatsheets/internal/constants"
 	"github.com/spf13/pflag"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 const envPrefix = "CHEATSHEETS_"
@@ -102,11 +103,27 @@ func maskToken(token string) string {
 	return prefix + secretPart[:7] + "***"
 }
 
+// GetDefaultConfigPath returns the default config file path in XDG config directory
+func GetDefaultConfigPath() string {
+	return filepath.Join(xdg.ConfigHome, constants.AppDataDirName, "config.yml")
+}
+
 // FindConfigFile checks for a .local variant of the config file first,
-// falling back to the original if .local doesn't exist
+// falling back to the original if .local doesn't exist.
+// If configFile is empty, returns the default XDG config path.
 func FindConfigFile(configFile string) string {
 	if configFile == "" {
-		return ""
+		// Check XDG config location (~/.config/cheatsheets/config.yml)
+		defaultPath := GetDefaultConfigPath()
+		localPath := strings.TrimSuffix(defaultPath, ".yml") + ".local.yml"
+
+		// Prefer .local variant
+		if _, err := os.Stat(localPath); err == nil {
+			return localPath
+		}
+
+		// Fall back to default (may or may not exist yet)
+		return defaultPath
 	}
 
 	// Check for .local variant (e.g., config.yml -> config.local.yml)
@@ -138,6 +155,15 @@ func getDefaultSheetsPath() string {
 // LoadConfig loads configuration from file, environment variables, and CLI flags
 // Returns the parsed config struct or an error
 func LoadConfig(flagSet *pflag.FlagSet, configFile string) (*Config, error) {
+	// Create default config file if it doesn't exist
+	if configFile != "" {
+		if _, err := os.Stat(configFile); os.IsNotExist(err) {
+			if err := ensureConfigFile(configFile); err != nil {
+				return nil, fmt.Errorf("failed to create config file: %w", err)
+			}
+		}
+	}
+
 	if configFile != "" {
 		parser, err := parserForFile(configFile)
 		if err != nil {
@@ -251,4 +277,56 @@ func expandPath(path string) string {
 	}
 
 	return path // Return original if expansion fails
+}
+
+// ensureConfigFile creates the config file if it doesn't exist
+func ensureConfigFile(configFile string) error {
+	// Create config directory if it doesn't exist
+	configDir := filepath.Dir(configFile)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	// Generate default config with env vars
+	configData := createDefaultConfigWithEnvVars()
+
+	// Marshal to YAML
+	data, err := yamlv3.Marshal(configData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal default config: %w", err)
+	}
+
+	// Write to file
+	if err := os.WriteFile(configFile, data, 0644); err != nil {
+		return fmt.Errorf("failed to write config file: %w", err)
+	}
+
+	return nil
+}
+
+// createDefaultConfigWithEnvVars creates a default config map with values from env vars if available
+func createDefaultConfigWithEnvVars() map[string]interface{} {
+	config := map[string]interface{}{
+		"sheets_path": getEnvOrDefault("CHEATSHEETS_SHEETS_PATH", "~/.cheatsheets"),
+		"debug":       getEnvOrDefault("CHEATSHEETS_DEBUG", "true") == "true",
+		"git": map[string]interface{}{
+			"repo_url":       getEnvOrDefault("CHEATSHEETS_GIT_REPO_URL", constants.RepoURL),
+			"clone_path":     getEnvOrDefault("CHEATSHEETS_GIT_CLONE_PATH", ""),
+			"token":          getEnvOrDefault("CHEATSHEETS_GIT_TOKEN", ""),
+			"auto_branch":    getEnvOrDefault("CHEATSHEETS_GIT_AUTO_BRANCH", "true") == "true",
+			"working_branch": getEnvOrDefault("CHEATSHEETS_GIT_WORKING_BRANCH", "working"),
+			"author_name":    getEnvOrDefault("CHEATSHEETS_GIT_AUTHOR_NAME", ""),
+			"author_email":   getEnvOrDefault("CHEATSHEETS_GIT_AUTHOR_EMAIL", ""),
+		},
+	}
+
+	return config
+}
+
+// getEnvOrDefault gets an environment variable or returns the default value
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }

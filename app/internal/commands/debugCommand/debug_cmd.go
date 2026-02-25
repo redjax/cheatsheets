@@ -20,7 +20,7 @@ var DebugCmd = &cobra.Command{
 		var configPath string
 		if configFile == "" {
 			// No explicit config specified, use default with .local fallback
-			configPath = config.FindConfigFile("config.yml")
+			configPath = config.FindConfigFile("")
 		} else {
 			// Explicit config specified, use it directly (no .local fallback)
 			configPath = configFile

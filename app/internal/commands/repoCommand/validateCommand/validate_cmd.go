@@ -28,7 +28,7 @@ var ValidateCmd = &cobra.Command{
 		var cfg *config.Config
 		if configFile == "" {
 			// Use FindConfigFile for .local fallback
-			configFile = config.FindConfigFile("config.yml")
+			configFile = config.FindConfigFile("")
 			cfg, err = config.LoadConfig(nil, configFile)
 		} else {
 			// Use explicit file

@@ -51,7 +51,7 @@ func runNew(cmd *cobra.Command, args []string) error {
 	// Load config
 	var cfg *config.Config
 	if configFile == "" {
-		configFile = config.FindConfigFile("config.yml")
+		configFile = config.FindConfigFile("")
 		cfg, err = config.LoadConfig(nil, configFile)
 	} else {
 		cfg, err = config.LoadConfig(nil, configFile)
