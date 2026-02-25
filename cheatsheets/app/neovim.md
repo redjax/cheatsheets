@@ -1,6 +1,6 @@
 ---
 description: "Terminal-based IDE, next-gen Vi(m)."
-last_updated: "2026-02-20"
+last_updated: "2026-02-25"
 tags: ["neovim", "app", "cli", "tui"]
 ---
 
@@ -30,3 +30,16 @@ Launching Neovim with CLI args controls how the program opens. Here are some use
   ```shell
   nvim --headless "+Lazy! sync" +qa
   ```
+
+### Search
+
+- Search all open buffers for text with `:bufdo`:
+
+  ```vim
+  :bufdo vimgrepadd threading % | copen
+  ```
+
+  - This will open the results in a quick fix window.
+  - Use `CTRL+j`/`CTRL+k` to navigate between lines containing the search text.
+  - Press enter to open the file to the matched line.
+
