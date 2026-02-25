@@ -1,7 +1,12 @@
 package repocommand
 
 import (
+	branchcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/branchCommand"
 	clonecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/cloneCommand"
+	commitcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/commitCommand"
+	pushcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/pushCommand"
+	stagecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/stageCommand"
+	statuscommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/statusCommand"
 	validatecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/validateCommand"
 	"github.com/spf13/cobra"
 )
@@ -19,6 +24,11 @@ var RepoCmd = &cobra.Command{
 
 func init() {
 	// Register subcommands
+	RepoCmd.AddCommand(branchcommand.BranchCmd)
 	RepoCmd.AddCommand(clonecommand.CloneCmd)
+	RepoCmd.AddCommand(commitcommand.CommitCmd)
+	RepoCmd.AddCommand(pushcommand.PushCmd)
+	RepoCmd.AddCommand(stagecommand.StageCmd)
+	RepoCmd.AddCommand(statuscommand.StatusCmd)
 	RepoCmd.AddCommand(validatecommand.ValidateCmd)
 }

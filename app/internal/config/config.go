@@ -33,9 +33,13 @@ type Config struct {
 
 // GitConfig struct for app-level configuration
 type GitConfig struct {
-	RepoUrl   string `koanf:"repo_url"`
-	ClonePath string `koanf:"clone_path" path:"expand"`
-	Token     string `koanf:"token"`
+	RepoUrl      string `koanf:"repo_url"`
+	ClonePath    string `koanf:"clone_path" path:"expand"`
+	Token        string `koanf:"token"`
+	AutoBranch   bool   `koanf:"auto_branch"`
+	BranchPrefix string `koanf:"branch_prefix"`
+	AuthorName   string `koanf:"author_name"`
+	AuthorEmail  string `koanf:"author_email"`
 }
 
 // String implements the Stringer interface to mask sensitive fields when printed

@@ -9,6 +9,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/redjax/cheatsheets/internal/config"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
+	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
 
@@ -61,6 +62,18 @@ func runDelete(cmd *cobra.Command, args []string) error {
 	// Validate repository directory exists
 	if err := cheatsheetservice.ValidateCheatsheetsDirectory(repoPath); err != nil {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
+	}
+
+	// Auto-switch to machine branch if enabled and on main
+	if cfg.Git.AutoBranch {
+		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
+		if err == nil && (currentBranch == "main" || currentBranch == "master") {
+			prefix := cfg.Git.BranchPrefix
+			if prefix == "" {
+				prefix = "local"
+			}
+			_, _ = reposervices.EnsureMachineBranch(repoPath, prefix)
+		}
 	}
 
 	// If no name provided, show selector
