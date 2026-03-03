@@ -966,3 +966,85 @@ func GetGitAuthor(configName, configEmail string) (name, email string, err error
 
 	return name, email, nil
 }
+
+// HasUpstreamTracking checks if the current branch has upstream tracking configured
+func HasUpstreamTracking(path string) (bool, string, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get HEAD: %w", err)
+	}
+
+	branchName := head.Name().Short()
+
+	// Get branch config to check for upstream
+	cfg, err := repo.Config()
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get config: %w", err)
+	}
+
+	// Check if branch has upstream configured
+	for _, branch := range cfg.Branches {
+		if branch.Name == branchName {
+			if branch.Remote != "" && branch.Merge != "" {
+				upstream := fmt.Sprintf("%s/%s", branch.Remote, branch.Merge.Short())
+				return true, upstream, nil
+			}
+		}
+	}
+
+	return false, "", nil
+}
+
+// IsRemoteReachable checks if the remote repository is accessible
+func IsRemoteReachable(path, token string) error {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return fmt.Errorf("failed to get remote: %w", err)
+	}
+
+	listOpts := &git.ListOptions{}
+	if token != "" {
+		listOpts.Auth = &http.BasicAuth{
+			Username: token,
+			Password: "",
+		}
+	}
+
+	// Try to list remote references (lightweight operation)
+	_, err = remote.List(listOpts)
+	if err != nil {
+		return fmt.Errorf("remote is not reachable: %w", err)
+	}
+
+	return nil
+}
+
+// IsValidBranchName checks if a branch name follows conventions
+// Valid formats: feat/*, fix/*, docs/*, refactor/*, test/*, chore/*, or "working", "main", "master"
+func IsValidBranchName(branchName string) (bool, string) {
+	// Allow special branches
+	if branchName == "main" || branchName == "master" || branchName == "working" {
+		return true, ""
+	}
+
+	// Check for conventional commit prefixes
+	validPrefixes := []string{"feat/", "fix/", "docs/", "refactor/", "test/", "chore/", "style/", "perf/", "ci/"}
+	for _, prefix := range validPrefixes {
+		if strings.HasPrefix(branchName, prefix) && len(branchName) > len(prefix) {
+			return true, ""
+		}
+	}
+
+	suggestion := "Branch names should follow convention: feat/*, fix/*, docs/*, etc.\nExamples: feat/new-feature, fix/bug-name"
+	return false, suggestion
+}

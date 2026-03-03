@@ -25,6 +25,15 @@ const (
 
 	// NoMergeInProgress ensures there's no active merge conflict
 	NoMergeInProgress CheckType = "no_merge_in_progress"
+
+	// HasUpstream ensures the current branch has upstream tracking configured
+	HasUpstream CheckType = "has_upstream"
+
+	// ValidBranchName ensures branch follows naming conventions
+	ValidBranchName CheckType = "valid_branch_name"
+
+	// RemoteReachable ensures the remote repository is accessible
+	RemoteReachable CheckType = "remote_reachable"
 )
 
 // CheckResult holds the result of a guard check
@@ -54,6 +63,12 @@ func Check(ctx *GuardContext, checkType CheckType) *CheckResult {
 		return checkNotOnWorkingBranch(ctx)
 	case NoMergeInProgress:
 		return checkNoMergeInProgress(ctx)
+	case HasUpstream:
+		return checkHasUpstream(ctx)
+	case ValidBranchName:
+		return checkValidBranchName(ctx)
+	case RemoteReachable:
+		return checkRemoteReachable(ctx)
 	default:
 		return &CheckResult{
 			Type:    checkType,
@@ -219,6 +234,76 @@ func checkNoMergeInProgress(ctx *GuardContext) *CheckResult {
 
 	return &CheckResult{
 		Type:   NoMergeInProgress,
+		Passed: true,
+	}
+}
+
+func checkHasUpstream(ctx *GuardContext) *CheckResult {
+	hasUpstream, upstream, err := reposervices.HasUpstreamTracking(ctx.RepoPath)
+	if err != nil {
+		return &CheckResult{
+			Type:    HasUpstream,
+			Passed:  false,
+			Message: fmt.Sprintf("failed to check upstream tracking: %v", err),
+		}
+	}
+
+	if !hasUpstream {
+		branch, _ := reposervices.GetCurrentBranch(ctx.RepoPath)
+		return &CheckResult{
+			Type:    HasUpstream,
+			Passed:  false,
+			Message: fmt.Sprintf("branch '%s' has no upstream tracking", branch),
+			Fix:     "chtsht repo push --set-upstream (to set upstream and push)",
+		}
+	}
+
+	return &CheckResult{
+		Type:    HasUpstream,
+		Passed:  true,
+		Message: fmt.Sprintf("tracking %s", upstream),
+	}
+}
+
+func checkValidBranchName(ctx *GuardContext) *CheckResult {
+	branch, err := reposervices.GetCurrentBranch(ctx.RepoPath)
+	if err != nil {
+		return &CheckResult{
+			Type:    ValidBranchName,
+			Passed:  false,
+			Message: fmt.Sprintf("failed to get current branch: %v", err),
+		}
+	}
+
+	valid, suggestion := reposervices.IsValidBranchName(branch)
+	if !valid {
+		return &CheckResult{
+			Type:    ValidBranchName,
+			Passed:  false,
+			Message: fmt.Sprintf("branch name '%s' doesn't follow conventions", branch),
+			Fix:     suggestion,
+		}
+	}
+
+	return &CheckResult{
+		Type:   ValidBranchName,
+		Passed: true,
+	}
+}
+
+func checkRemoteReachable(ctx *GuardContext) *CheckResult {
+	err := reposervices.IsRemoteReachable(ctx.RepoPath, ctx.Config.Git.Token)
+	if err != nil {
+		return &CheckResult{
+			Type:    RemoteReachable,
+			Passed:  false,
+			Message: fmt.Sprintf("remote is not reachable: %v", err),
+			Fix:     "Check your internet connection or verify repository URL in config",
+		}
+	}
+
+	return &CheckResult{
+		Type:   RemoteReachable,
 		Passed: true,
 	}
 }

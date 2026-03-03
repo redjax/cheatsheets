@@ -15,6 +15,9 @@ Guards are lightweight checks that run before commands execute. They validate pr
 | `OnWorkingBranch` | Not on main/master | Before making edits, committing new work |
 | `NotOnWorkingBranch` | Currently on main/master | Before operations that require main |
 | `NoMergeInProgress` | No active merge conflicts | Before starting new operations |
+| `HasUpstream` | Branch has upstream tracking configured | Before push operations |
+| `ValidBranchName` | Branch follows naming conventions | For enforcing branch naming standards |
+| `RemoteReachable` | Remote repository is accessible | Before push/pull operations (optional) |
 
 ## Usage
 
@@ -181,7 +184,7 @@ Do:
 Don't:
 
 - Add guards to simple read operations (unless checking repo exists)
-- Make expensive network calls in guards (checking if remote is reachable)
+- Use `RemoteReachable` for every command (it's a network call - use sparingly)
 - Perform deep validation that belongs in the command itself
 - Add guards that duplicate work the command will do anyway
 
