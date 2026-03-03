@@ -6,13 +6,6 @@ The guards system provides pre-flight checks to protect repository operations fr
 
 Guards are lightweight checks that run before commands execute. They validate preconditions (like "working tree is clean" or "repository exists") and provide helpful error messages when checks fail.
 
-## Design Goals
-
-1. **Fast** - Checks should be quick (avoid expensive git operations where possible)
-2. **Selective** - Commands only run checks they need
-3. **Clear** - Failed checks provide actionable fix suggestions
-4. **Non-intrusive** - Easy to add to existing commands
-
 ## Available Checks
 
 | Check Type | Purpose | When to Use |
@@ -61,12 +54,14 @@ var MyCmd = &cobra.Command{
 
 ### Choosing Which Guards to Use
 
-**Read-only commands** (show, list):
+Read-only commands (show, list):
+
 ```go
 guards.CheckAll(guardCtx, guards.RepoCloned)
 ```
 
-**Edit commands** (edit, new):
+Edit commands (edit, new):
+
 ```go
 guards.CheckAll(guardCtx, 
     guards.RepoCloned,
@@ -74,7 +69,8 @@ guards.CheckAll(guardCtx,
 )
 ```
 
-**Merge/Branch operations** (merge-from-main, merge-to-main):
+Merge/Branch operations (merge-from-main, merge-to-main):
+
 ```go
 guards.CheckAll(guardCtx, 
     guards.RepoCloned,
@@ -83,7 +79,8 @@ guards.CheckAll(guardCtx,
 )
 ```
 
-**Push/Pull operations**:
+Push/Pull operations:
+
 ```go
 guards.CheckAll(guardCtx, 
     guards.RepoCloned,
@@ -122,45 +119,37 @@ if !result.Passed {
 
 ## Error Messages
 
-When a guard fails, it provides:
-1. **Clear message** - What went wrong
-2. **Suggested fix** - Command to resolve the issue
+When a guard fails, it returns a message describing what went wrong and a suggested fix.
 
 Example output:
-```
+
+```shell
 Pre-flight check failed: you have uncommitted changes
 
 To fix: chtsht repo status (to see changes) or chtsht repo commit -a (to commit them)
 ```
 
-## Performance
-
-Guards are designed to be fast:
-- **RepoCloned**: O(1) - Single filesystem check
-- **CleanWorkingTree**: O(n) - Git status (fast, uses libgit2)
-- **OnWorkingBranch**: O(1) - Read current branch
-- **NoMergeInProgress**: O(n) - Git status
-
-For most commands, all checks complete in < 50ms.
-
 ## Adding New Guards
 
 To add a new guard type:
 
-1. **Define the constant** in `guards.go`:
+- Define the constant in `guards.go`:
+
 ```go
 const (
     MyNewCheck CheckType = "my_new_check"
 )
 ```
 
-2. **Add to switch statement** in `Check()`:
+- Add to switch statement in `Check()`:
+
 ```go
 case MyNewCheck:
     return checkMyNewCheck(ctx)
 ```
 
-3. **Implement check function**:
+- Implement check function:
+
 ```go
 func checkMyNewCheck(ctx *GuardContext) *CheckResult {
     // Perform your check
@@ -182,43 +171,22 @@ func checkMyNewCheck(ctx *GuardContext) *CheckResult {
 
 ## Best Practices
 
-### ✅ DO:
+Do:
+
 - Use guards for all mutating operations (merge, commit, push)
 - Keep checks fast (< 50ms per check)
 - Provide actionable fix suggestions
 - Only run checks that are necessary for the command
 
-### ❌ DON'T:
+Don't:
+
 - Add guards to simple read operations (unless checking repo exists)
 - Make expensive network calls in guards (checking if remote is reachable)
 - Perform deep validation that belongs in the command itself
 - Add guards that duplicate work the command will do anyway
-
-## Migration Strategy
-
-**Phase 1** (Current): Add guards to high-risk commands
-- merge operations
-- push operations  
-- branch switching
-
-**Phase 2**: Expand to medium-risk commands
-- edit operations
-- delete operations
-
-**Phase 3**: Add comprehensive guards to all commands
 
 ## Examples
 
 See these commands for guard usage examples:
 - [`updateFromMainCommand/update_from_main_cmd.go`](../commands/repoCommand/updateFromMainCommand/update_from_main_cmd.go) - Full example with all typical guards
 - [`mergeToMainCommand/merge_to_main_cmd.go`](../commands/repoCommand/mergeToMainCommand/merge_to_main_cmd.go) - Merge operation guards
-
-## Future Enhancements
-
-Potential additions:
-- `RemoteReachable` - Check if remote is accessible (for push/pull)
-- `HasUpstream` - Verify branch has remote tracking
-- `NoConflicts` - Deep check for merge conflicts
-- `ValidBranchName` - Verify branch naming conventions
-- Guard middleware for automatic application
-- Guard results caching within a command execution

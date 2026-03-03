@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
@@ -48,6 +49,12 @@ This is equivalent to running:
 
 		if err != nil {
 			return fmt.Errorf("failed to load config: %w", err)
+		}
+
+		// Pre-flight check - only verify repo exists (sync is meant to handle dirty trees)
+		guardCtx := guards.NewGuardContext(cfg)
+		if err := guards.CheckAll(guardCtx, guards.RepoCloned); err != nil {
+			return err
 		}
 
 		repoPath := cfg.Git.ClonePath
