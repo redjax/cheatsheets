@@ -18,21 +18,16 @@ type CheatsheetInfo struct {
 }
 
 // GetCheatsheetsPath returns the path to the cheatsheets directory
-// If the path already contains type directories (app, command, language, system),
-// it returns the path as-is. Otherwise, it appends "cheatsheets".
+// First checks if a "cheatsheets" subdirectory exists, otherwise assumes basePath is already it.
 func GetCheatsheetsPath(basePath string) string {
-	// Check if this is already a cheatsheets directory by looking for common subdirs
-	commonDirs := []string{"app", "command", "language", "system"}
-	for _, dir := range commonDirs {
-		checkPath := filepath.Join(basePath, dir)
-		if info, err := os.Stat(checkPath); err == nil && info.IsDir() {
-			// Found a type directory, so basePath is already the cheatsheets path
-			return basePath
-		}
+	// First, check if there's a "cheatsheets" subdirectory
+	cheatsheetsSubdir := filepath.Join(basePath, "cheatsheets")
+	if info, err := os.Stat(cheatsheetsSubdir); err == nil && info.IsDir() {
+		return cheatsheetsSubdir
 	}
 
-	// Not found, assume this is a repo path and append "cheatsheets"
-	return filepath.Join(basePath, "cheatsheets")
+	// If no "cheatsheets" subdirectory exists, assume basePath is already the cheatsheets path
+	return basePath
 }
 
 // ValidateCheatsheetsDirectory checks if the cheatsheets directory exists
