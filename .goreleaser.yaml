@@ -49,8 +49,6 @@ builds:
 
 archives:
   - id: chtsht-archives
-    builds:
-      - chtsht
     ## Custom naming to match self-upgrade expectations: chtsht-<os>-<arch>-<version>.zip
     name_template: >-
       chtsht-
@@ -59,7 +57,8 @@ archives:
       {{- .Arch }}-
       {{- .Version }}
     ## Use zip for all platforms (self-upgrade expects .zip)
-    format: zip
+    formats:
+      - zip
     ## Only include the binary (no README/LICENSE to avoid confusion)
     files:
       - none*
