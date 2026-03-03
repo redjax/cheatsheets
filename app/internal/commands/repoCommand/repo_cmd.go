@@ -10,6 +10,7 @@ import (
 	stagecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/stageCommand"
 	statuscommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/statusCommand"
 	synccommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/syncCommand"
+	updatefrommaincommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/updateFromMainCommand"
 	validatecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/validateCommand"
 	"github.com/spf13/cobra"
 )
@@ -36,5 +37,6 @@ func init() {
 	RepoCmd.AddCommand(stagecommand.StageCmd)
 	RepoCmd.AddCommand(statuscommand.StatusCmd)
 	RepoCmd.AddCommand(synccommand.SyncCmd)
+	RepoCmd.AddCommand(updatefrommaincommand.UpdateFromMainCmd)
 	RepoCmd.AddCommand(validatecommand.ValidateCmd)
 }
