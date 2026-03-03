@@ -21,13 +21,9 @@ var CommitCmd = &cobra.Command{
 	
 Examples:
   chtsht repo commit -m "Updated Linux cheatsheet"
-  chtsht repo commit --auto-commit -m "Quick fix"  # Stage all + commit`,
+  chtsht repo commit --auto-commit              # Stage all + auto-generate message
+  chtsht repo commit --auto-commit -m "Custom"  # Stage all + custom message`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// Require message flag
-		if message == "" {
-			return fmt.Errorf("commit message is required. Use -m flag: chtsht repo commit -m \"your message\"")
-		}
-
 		// Get the config file path from the persistent flag
 		configFile, err := cmd.Flags().GetString("config-file")
 		if err != nil {
@@ -71,6 +67,30 @@ Examples:
 					return fmt.Errorf("failed to stage changes: %w", err)
 				}
 			}
+
+			// If no message provided with --auto-commit, generate one
+			if message == "" {
+				// Get list of changed files for the message
+				staged, err := reposervices.GetStagedFiles(cfg.Git.ClonePath)
+				if err == nil && len(staged) > 0 {
+					// Generate message based on files
+					if len(staged) == 1 {
+						message = fmt.Sprintf("Update %s", staged[0])
+					} else if len(staged) <= 3 {
+						message = fmt.Sprintf("Update %d files", len(staged))
+					} else {
+						message = fmt.Sprintf("Update %d files", len(staged))
+					}
+				} else {
+					message = "Auto-commit changes"
+				}
+				fmt.Printf("Auto-generated message: %s\n", message)
+			}
+		} else {
+			// Not using auto-commit, message is required
+			if message == "" {
+				return fmt.Errorf("commit message is required. Use -m flag: chtsht repo commit -m \"your message\"")
+			}
 		}
 
 		// Check if there are staged files
@@ -113,6 +133,6 @@ Examples:
 }
 
 func init() {
-	CommitCmd.Flags().StringVarP(&message, "message", "m", "", "Commit message (required)")
-	CommitCmd.Flags().BoolVar(&autoCommit, "auto-commit", false, "Automatically stage all changes before committing")
+	CommitCmd.Flags().StringVarP(&message, "message", "m", "", "Commit message (optional with --auto-commit)")
+	CommitCmd.Flags().BoolVarP(&autoCommit, "auto-commit", "a", false, "Automatically stage all changes and generate message if not provided")
 }
