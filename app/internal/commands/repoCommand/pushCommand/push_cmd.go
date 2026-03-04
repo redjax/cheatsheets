@@ -64,17 +64,26 @@ Examples:
 			return fmt.Errorf("failed to get current branch: %w", err)
 		}
 
+		// Fetch first to ensure we have latest remote state
+		fmt.Println("Checking remote state...")
+		err = reposervices.FetchRepository(cfg.Git.ClonePath, cfg.Git.Token)
+		if err != nil && err.Error() != "already up-to-date" {
+			fmt.Printf("Warning: fetch failed: %v\n", err)
+		}
+
 		// Check if we need to set upstream (first push)
 		// We'll try to get divergence - if remote doesn't exist, we need upstream
-		_, _, err = reposervices.GetBranchDivergence(cfg.Git.ClonePath, branch, cfg.Git.Token)
+		ahead, behind, err := reposervices.GetBranchDivergence(cfg.Git.ClonePath, branch, cfg.Git.Token)
 		needsUpstream := err != nil
 
 		if needsUpstream && !setUpstream {
 			setUpstream = true
 			fmt.Printf("Setting upstream for new branch '%s'\n", branch)
+		} else if behind > 0 {
+			return fmt.Errorf("remote has %d commit(s) you don't have. Pull first with 'chtsht repo pull'", behind)
 		}
 
-		fmt.Printf("Pushing branch '%s' to origin\n", branch)
+		fmt.Printf("Pushing branch '%s' to origin (ahead: %d, behind: %d)\n", branch, ahead, behind)
 
 		// Push
 		err = reposervices.PushBranch(cfg.Git.ClonePath, branch, cfg.Git.Token, setUpstream)
