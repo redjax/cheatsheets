@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
@@ -45,27 +46,18 @@ those changes into your working branch before continuing work.`,
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
+		// Pre-flight checks using guards
+		guardCtx := guards.NewGuardContext(cfg)
+		if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.CleanWorkingTree, guards.OnWorkingBranch); err != nil {
+			return err
+		}
+
 		repoPath := cfg.Git.ClonePath
 
-		// Get current branch
+		// Get current branch (guards already verified we're on working branch)
 		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
 		if err != nil {
 			return fmt.Errorf("failed to get current branch: %w", err)
-		}
-
-		// Check if already on main
-		if currentBranch == "main" || currentBranch == "master" {
-			return fmt.Errorf("you are on the %s branch. Switch to your working branch first.\nRun 'chtsht repo branch --name working' to switch", currentBranch)
-		}
-
-		// Check for uncommitted changes
-		clean, err := reposervices.IsWorkingTreeClean(repoPath)
-		if err != nil {
-			return fmt.Errorf("failed to check working tree: %w", err)
-		}
-
-		if !clean {
-			return fmt.Errorf("you have uncommitted changes. Commit or stash them first.\nRun 'chtsht repo status' to see your changes")
 		}
 
 		fmt.Printf("Merging 'main' → '%s'\n\n", currentBranch)

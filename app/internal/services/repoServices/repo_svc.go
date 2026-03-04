@@ -3,7 +3,6 @@ package reposervices
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -96,6 +95,8 @@ func EnsureRepository(url, path, token string) error {
 
 // UpdateRepository pulls the latest changes from the remote repository.
 // If a token is provided, it will be used for authentication.
+// Handles fast-forward updates. For non-fast-forward scenarios (diverged branches),
+// returns an informative error with guidance.
 func UpdateRepository(path, token string) error {
 	fmt.Printf("Updating repository at %s\n", path)
 
@@ -112,9 +113,25 @@ func UpdateRepository(path, token string) error {
 	}
 
 	// Get the remote config
-	config := remote.Config()
-	if len(config.URLs) > 0 {
-		fmt.Printf("Remote URL: %s\n", config.URLs[0])
+	remoteConfig := remote.Config()
+	if len(remoteConfig.URLs) > 0 {
+		fmt.Printf("Remote URL: %s\n", remoteConfig.URLs[0])
+	}
+
+	// Get current branch name before pulling
+	head, err := repo.Head()
+	if err != nil {
+		return fmt.Errorf("failed to get HEAD: %w", err)
+	}
+	branchName := head.Name().Short()
+	localHash := head.Hash()
+
+	// Get remote branch hash before pull
+	remoteBranchRef := plumbing.NewRemoteReferenceName("origin", branchName)
+	remoteBranch, err := repo.Reference(remoteBranchRef, true)
+	var remoteHashBefore plumbing.Hash
+	if err == nil {
+		remoteHashBefore = remoteBranch.Hash()
 	}
 
 	// Get the working tree
@@ -123,33 +140,80 @@ func UpdateRepository(path, token string) error {
 		return fmt.Errorf("failed to get worktree: %w", err)
 	}
 
-	// Configure pull options
+	// Configure pull options - explicitly specify which branch to pull
 	pullOpts := &git.PullOptions{
-		RemoteName: "origin",
-		Progress:   os.Stdout,
-		// Force HTTPS-based pull, don't use remote URL
-		Force: false,
+		RemoteName:    "origin",
+		Progress:      os.Stdout,
+		Force:         false,
+		ReferenceName: plumbing.NewBranchReferenceName(branchName), // Pull only this branch
 	}
 
 	// If token is provided, configure authentication
 	if token != "" {
 		pullOpts.Auth = &http.BasicAuth{
-			Username: token, // GitHub uses token as username
-			Password: "",    // Password should be empty
+			Username: token,
+			Password: "",
 		}
 	}
 
-	// Pull latest changes
+	// Attempt to pull
 	err = worktree.Pull(pullOpts)
 	if err == git.NoErrAlreadyUpToDate {
 		fmt.Println("Repository is already up to date")
 		return nil
 	}
+
+	// If non-fast-forward, provide more detailed guidance
+	if err != nil && strings.Contains(err.Error(), "non-fast-forward") {
+		fmt.Printf("\nDebug info:\n")
+		fmt.Printf("  Local:  %s\n", localHash)
+		fmt.Printf("  Remote: %s\n", remoteHashBefore)
+		return fmt.Errorf(`branches have diverged - both local and remote have changes
+
+This happens when commits were made on multiple machines.
+
+To resolve:
+  1. Commit your local changes: chtsht repo commit -a -m "your message"
+  2. Fetch remote changes:      chtsht repo sync
+  3. Merge manually or use the merge command once available
+
+Your local changes are safe. Remote: origin/%s`, branchName)
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to pull updates: %w", err)
 	}
 
 	fmt.Println("Repository updated successfully")
+	return nil
+}
+
+// FetchRepository fetches the latest changes from remote without merging.
+func FetchRepository(path, token string) error {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	fetchOpts := &git.FetchOptions{
+		RemoteName: "origin",
+	}
+
+	if token != "" {
+		fetchOpts.Auth = &http.BasicAuth{
+			Username: token,
+			Password: "",
+		}
+	}
+
+	err = repo.Fetch(fetchOpts)
+	if err == git.NoErrAlreadyUpToDate {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("failed to fetch: %w", err)
+	}
+
 	return nil
 }
 
@@ -374,15 +438,99 @@ func CheckoutBranch(path, branchName string) error {
 
 // MergeBranch merges the specified branch into the current branch.
 // Uses git command-line since go-git doesn't have built-in merge support.
+// MergeBranch merges the specified branch into the current branch using go-git.
+// This performs a fast-forward merge when possible. For non-fast-forward scenarios
+// where automatic merging isn't possible, returns an error.
 func MergeBranch(path, branchName string) error {
-	// Use git merge command
-	cmd := exec.Command("git", "-C", path, "merge", branchName, "--no-edit")
-	output, err := cmd.CombinedOutput()
+	// Open repository
+	repo, err := git.PlainOpen(path)
 	if err != nil {
-		return fmt.Errorf("merge failed: %w\nOutput: %s", err, string(output))
+		return fmt.Errorf("failed to open repository: %w", err)
 	}
 
-	return nil
+	// Get current HEAD
+	head, err := repo.Head()
+	if err != nil {
+		return fmt.Errorf("failed to get HEAD: %w", err)
+	}
+
+	// Get the branch reference to merge
+	branchRef, err := repo.Reference(plumbing.NewBranchReferenceName(branchName), true)
+	if err != nil {
+		return fmt.Errorf("branch '%s' not found: %w", branchName, err)
+	}
+
+	// Check if already at the same commit
+	if head.Hash() == branchRef.Hash() {
+		fmt.Printf("Already up to date with '%s'\n", branchName)
+		return nil
+	}
+
+	// Get commit objects
+	headCommit, err := repo.CommitObject(head.Hash())
+	if err != nil {
+		return fmt.Errorf("failed to get current commit: %w", err)
+	}
+
+	branchCommit, err := repo.CommitObject(branchRef.Hash())
+	if err != nil {
+		return fmt.Errorf("failed to get branch commit: %w", err)
+	}
+
+	// Check if branch is ancestor of current (already merged)
+	isAncestor, err := headCommit.IsAncestor(branchCommit)
+	if err != nil {
+		return fmt.Errorf("failed to check ancestry: %w", err)
+	}
+	if isAncestor {
+		fmt.Printf("Already contains all commits from '%s'\n", branchName)
+		return nil
+	}
+
+	// Check if fast-forward is possible (current is ancestor of branch)
+	canFF, err := branchCommit.IsAncestor(headCommit)
+	if err != nil {
+		return fmt.Errorf("failed to check if fast-forward possible: %w", err)
+	}
+
+	if canFF {
+		// Perform fast-forward merge by updating HEAD to branch commit
+		worktree, err := repo.Worktree()
+		if err != nil {
+			return fmt.Errorf("failed to get worktree: %w", err)
+		}
+
+		err = worktree.Checkout(&git.CheckoutOptions{
+			Hash:  branchRef.Hash(),
+			Force: false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to fast-forward: %w", err)
+		}
+
+		// Update the branch reference
+		currentBranchName := head.Name()
+		ref := plumbing.NewHashReference(currentBranchName, branchRef.Hash())
+		err = repo.Storer.SetReference(ref)
+		if err != nil {
+			return fmt.Errorf("failed to update reference: %w", err)
+		}
+
+		fmt.Printf("Fast-forward merge of '%s' successful\n", branchName)
+		return nil
+	}
+
+	// Non-fast-forward merge - requires manual intervention
+	return fmt.Errorf(`cannot automatically merge '%s' - branches have diverged
+
+go-git does not support automatic conflict resolution.
+
+To resolve:
+  1. Ensure both branches are pushed to remote
+  2. Use GitHub's web interface to create a pull request
+  3. Or manually merge and resolve conflicts using external tools
+
+Fast-forward merges are supported automatically.`, branchName)
 }
 
 // EnsureWorkingBranch ensures the shared working branch exists and is checked out.
@@ -714,6 +862,10 @@ func PushBranch(path, branchName, token string, setUpstream bool) error {
 
 	pushOpts := &git.PushOptions{
 		Progress: os.Stdout,
+		// Always specify which branch to push to avoid pushing unintended branches
+		RefSpecs: []config.RefSpec{
+			config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)),
+		},
 	}
 
 	// If token is provided, configure authentication
@@ -724,13 +876,6 @@ func PushBranch(path, branchName, token string, setUpstream bool) error {
 		}
 	}
 
-	// Set upstream if requested
-	if setUpstream {
-		pushOpts.RefSpecs = []config.RefSpec{
-			config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)),
-		}
-	}
-
 	err = repo.Push(pushOpts)
 	if err == git.NoErrAlreadyUpToDate {
 		fmt.Println("Branch is already up to date with remote")
@@ -738,6 +883,34 @@ func PushBranch(path, branchName, token string, setUpstream bool) error {
 	}
 	if err != nil {
 		return fmt.Errorf("failed to push: %w", err)
+	}
+
+	// If setUpstream flag is true, update local branch config to track remote
+	if setUpstream {
+		// Get the branch reference
+		branchRef := plumbing.NewBranchReferenceName(branchName)
+
+		// Update the branch configuration
+		cfg, err := repo.Config()
+		if err != nil {
+			// Push succeeded but upstream setup failed - not critical
+			fmt.Printf("Warning: failed to set upstream tracking: %v\n", err)
+			return nil
+		}
+
+		cfg.Branches[branchName] = &config.Branch{
+			Name:   branchName,
+			Remote: "origin",
+			Merge:  branchRef,
+		}
+
+		err = repo.Storer.SetConfig(cfg)
+		if err != nil {
+			fmt.Printf("Warning: failed to save upstream tracking: %v\n", err)
+			return nil
+		}
+
+		fmt.Printf("Branch '%s' set up to track 'origin/%s'\n", branchName, branchName)
 	}
 
 	return nil
@@ -818,36 +991,46 @@ func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err
 		return 0, 0, nil
 	}
 
-	// Count commits ahead (from local that aren't in remote)
-	commits, err := repo.Log(&git.LogOptions{
-		From: localCommit.Hash,
-	})
+	// Check if local is ahead of remote (remote is ancestor of local)
+	isLocalAhead, err := localCommit.IsAncestor(remoteCommit)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to get log: %w", err)
+		return 0, 0, fmt.Errorf("failed to check ancestry: %w", err)
+	}
+
+	// Check if remote is ahead of local (local is ancestor of remote)
+	isRemoteAhead, err := remoteCommit.IsAncestor(localCommit)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to check ancestry: %w", err)
 	}
 
 	ahead = 0
 	behind = 0
-	foundRemote := false
 
-	err = commits.ForEach(func(c *object.Commit) error {
-		if c.Hash == remoteCommit.Hash {
-			foundRemote = true
-			return fmt.Errorf("stop") // Use error to break
+	// If remote is ancestor of local, count commits ahead
+	if isLocalAhead {
+		commits, err := repo.Log(&git.LogOptions{
+			From: localCommit.Hash,
+		})
+		if err != nil {
+			return 0, 0, fmt.Errorf("failed to get log: %w", err)
 		}
-		if !foundRemote {
+
+		err = commits.ForEach(func(c *object.Commit) error {
+			if c.Hash == remoteCommit.Hash {
+				return fmt.Errorf("stop")
+			}
 			ahead++
-		}
-		return nil
-	})
+			return nil
+		})
+	}
 
-	// Count commits behind (from remote that aren't in local)
-	if !foundRemote {
-		commits, err = repo.Log(&git.LogOptions{
+	// If local is ancestor of remote, count commits behind
+	if isRemoteAhead {
+		commits, err := repo.Log(&git.LogOptions{
 			From: remoteCommit.Hash,
 		})
 		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get remote log: %w", err)
+			return 0, 0, fmt.Errorf("failed to get log: %w", err)
 		}
 
 		err = commits.ForEach(func(c *object.Commit) error {
@@ -857,6 +1040,16 @@ func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err
 			behind++
 			return nil
 		})
+	}
+
+	// If neither is ancestor of the other, branches have truly diverged
+	// In this case, we'd need merge-base calculation which is complex
+	// For now, just indicate divergence by setting both to 1
+	if !isLocalAhead && !isRemoteAhead {
+		// Branches have diverged - try to estimate
+		// This is imperfect without proper merge-base
+		ahead = 1  // Indicate there are local changes
+		behind = 1 // Indicate there are remote changes
 	}
 
 	return ahead, behind, nil
@@ -922,7 +1115,23 @@ func GetDetailedStatus(path, token string) (*DetailedStatus, error) {
 		status.LastCommit = lastCommit
 	}
 
-	// Get branch divergence
+	// Fetch to update remote refs before checking divergence
+	repo, err := git.PlainOpen(path)
+	if err == nil {
+		fetchOpts := &git.FetchOptions{
+			RemoteName: "origin",
+		}
+		if token != "" {
+			fetchOpts.Auth = &http.BasicAuth{
+				Username: token,
+				Password: "",
+			}
+		}
+		// Fetch silently, ignore errors (might be offline)
+		_ = repo.Fetch(fetchOpts)
+	}
+
+	// Get branch divergence (now against fresh remote refs)
 	ahead, behind, err := GetBranchDivergence(path, basicStatus.CurrentBranch, token)
 	if err == nil {
 		status.AheadBy = ahead
@@ -932,37 +1141,115 @@ func GetDetailedStatus(path, token string) (*DetailedStatus, error) {
 	return status, nil
 }
 
-// GetGitConfig reads git configuration values.
-func GetGitConfig(key string) (string, error) {
-	cmd := exec.Command("git", "config", "--get", key)
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
-}
-
 // GetGitAuthor returns the configured git author name and email.
-// Falls back to system git config if not provided.
+// Falls back to environment variables or returns an error.
 func GetGitAuthor(configName, configEmail string) (name, email string, err error) {
 	name = configName
 	email = configEmail
 
-	// If name not provided, try to get from git config
+	// If name not provided, try environment variables
 	if name == "" {
-		name, err = GetGitConfig("user.name")
-		if err != nil || name == "" {
-			return "", "", fmt.Errorf("git author name not configured. Set it with: git config --global user.name 'Your Name'")
+		name = os.Getenv("GIT_AUTHOR_NAME")
+		if name == "" {
+			name = os.Getenv("GIT_COMMITTER_NAME")
+		}
+		if name == "" {
+			return "", "", fmt.Errorf("git author name not configured. Set in config.yml or environment variable GIT_AUTHOR_NAME")
 		}
 	}
 
-	// If email not provided, try to get from git config
+	// If email not provided, try environment variables
 	if email == "" {
-		email, err = GetGitConfig("user.email")
-		if err != nil || email == "" {
-			return "", "", fmt.Errorf("git author email not configured. Set it with: git config --global user.email 'you@example.com'")
+		email = os.Getenv("GIT_AUTHOR_EMAIL")
+		if email == "" {
+			email = os.Getenv("GIT_COMMITTER_EMAIL")
+		}
+		if email == "" {
+			return "", "", fmt.Errorf("git author email not configured. Set in config.yml or environment variable GIT_AUTHOR_EMAIL")
 		}
 	}
 
 	return name, email, nil
+}
+
+// HasUpstreamTracking checks if the current branch has upstream tracking configured
+func HasUpstreamTracking(path string) (bool, string, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return false, "", fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	head, err := repo.Head()
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get HEAD: %w", err)
+	}
+
+	branchName := head.Name().Short()
+
+	// Get branch config to check for upstream
+	cfg, err := repo.Config()
+	if err != nil {
+		return false, "", fmt.Errorf("failed to get config: %w", err)
+	}
+
+	// Check if branch has upstream configured
+	for _, branch := range cfg.Branches {
+		if branch.Name == branchName {
+			if branch.Remote != "" && branch.Merge != "" {
+				upstream := fmt.Sprintf("%s/%s", branch.Remote, branch.Merge.Short())
+				return true, upstream, nil
+			}
+		}
+	}
+
+	return false, "", nil
+}
+
+// IsRemoteReachable checks if the remote repository is accessible
+func IsRemoteReachable(path, token string) error {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	remote, err := repo.Remote("origin")
+	if err != nil {
+		return fmt.Errorf("failed to get remote: %w", err)
+	}
+
+	listOpts := &git.ListOptions{}
+	if token != "" {
+		listOpts.Auth = &http.BasicAuth{
+			Username: token,
+			Password: "",
+		}
+	}
+
+	// Try to list remote references (lightweight operation)
+	_, err = remote.List(listOpts)
+	if err != nil {
+		return fmt.Errorf("remote is not reachable: %w", err)
+	}
+
+	return nil
+}
+
+// IsValidBranchName checks if a branch name follows conventions
+// Valid formats: feat/*, fix/*, docs/*, refactor/*, test/*, chore/*, or "working", "main", "master"
+func IsValidBranchName(branchName string) (bool, string) {
+	// Allow special branches
+	if branchName == "main" || branchName == "master" || branchName == "working" {
+		return true, ""
+	}
+
+	// Check for conventional commit prefixes
+	validPrefixes := []string{"feat/", "fix/", "docs/", "refactor/", "test/", "chore/", "style/", "perf/", "ci/"}
+	for _, prefix := range validPrefixes {
+		if strings.HasPrefix(branchName, prefix) && len(branchName) > len(prefix) {
+			return true, ""
+		}
+	}
+
+	suggestion := "Branch names should follow convention: feat/*, fix/*, docs/*, etc.\nExamples: feat/new-feature, fix/bug-name"
+	return false, suggestion
 }
