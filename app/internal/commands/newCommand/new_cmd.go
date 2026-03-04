@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
-	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
 
@@ -61,27 +61,13 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
+	// Pre-flight checks - ensure repo exists and we're on working branch
+	guardCtx := guards.NewGuardContext(cfg)
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+		return err
+	}
+
 	repoPath := cfg.Git.ClonePath
-	if repoPath == "" {
-		return fmt.Errorf("git.ClonePath not configured")
-	}
-
-	// Verify the repository path exists
-	if _, err := os.Stat(repoPath); os.IsNotExist(err) {
-		return fmt.Errorf("repository path does not exist: %s\nRun 'chtsht repo clone' first", repoPath)
-	}
-
-	// Auto-switch to working branch if enabled and on main
-	if cfg.Git.AutoBranch {
-		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
-		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			workingBranch := cfg.Git.WorkingBranch
-			if workingBranch == "" {
-				workingBranch = "working"
-			}
-			_, _ = reposervices.EnsureWorkingBranch(repoPath, workingBranch)
-		}
-	}
 
 	// Get available types from the repository
 	availableTypes, err := cheatsheetservice.GetAvailableTypes(repoPath)

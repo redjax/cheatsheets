@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
@@ -54,9 +55,10 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Validate git repository path is configured
-	if cfg.Git.ClonePath == "" {
-		return fmt.Errorf("git repository path not configured")
+	// Pre-flight checks - ensure repo exists and we're on working branch
+	guardCtx := guards.NewGuardContext(cfg)
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+		return err
 	}
 
 	// Validate repository directory exists

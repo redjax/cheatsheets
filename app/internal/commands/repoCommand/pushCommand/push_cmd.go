@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
@@ -41,14 +42,10 @@ Examples:
 			return fmt.Errorf("failed to load config: %w", err)
 		}
 
-		// Check if repository is cloned
-		cloned, err := reposervices.IsRepositoryCloned(cfg.Git.ClonePath)
-		if err != nil {
-			return fmt.Errorf("error checking repository: %w", err)
-		}
-
-		if !cloned {
-			return fmt.Errorf("repository is not cloned at %s. Run 'chtsht repo clone' first", cfg.Git.ClonePath)
+		// Pre-flight check
+		guardCtx := guards.NewGuardContext(cfg)
+		if err := guards.CheckAll(guardCtx, guards.RepoCloned); err != nil {
+			return err
 		}
 
 		// Check if working tree is clean

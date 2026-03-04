@@ -8,6 +8,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/redjax/cheatsheets/internal/config"
+	"github.com/redjax/cheatsheets/internal/guards"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
 	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
@@ -54,10 +55,13 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	repoPath := cfg.Git.ClonePath
-	if repoPath == "" {
-		return fmt.Errorf("git.ClonePath not configured")
+	// Pre-flight checks - ensure repo exists and we're on working branch
+	guardCtx := guards.NewGuardContext(cfg)
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+		return err
 	}
+
+	repoPath := cfg.Git.ClonePath
 
 	// Validate repository directory exists
 	if err := cheatsheetservice.ValidateCheatsheetsDirectory(repoPath); err != nil {
