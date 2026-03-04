@@ -11,8 +11,10 @@ import (
 )
 
 var CdCmd = &cobra.Command{
-	Use:   "cd",
-	Short: "Open a shell in the cheatsheets repository directory",
+	Use:           "cd",
+	Short:         "Open a shell in the cheatsheets repository directory",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Long: `Open a new shell session in the cheatsheets repository directory.
 This works similarly to 'chezmoi cd' - it spawns a subshell in the repository location.
 Use 'exit' to return to your original directory.`,
@@ -92,9 +94,10 @@ func openShellInDirectory(path string) error {
 	shellCmd.Stderr = os.Stderr
 
 	// Run the shell and wait for it to exit
-	if err := shellCmd.Run(); err != nil {
-		return fmt.Errorf("error running shell: %w", err)
-	}
+	// Note: We ignore errors here because the shell exiting (even with non-zero status)
+	// is expected behavior. The user may have run commands that failed, or exited
+	// with a non-zero status, but that's not an error for the cd command itself.
+	_ = shellCmd.Run()
 
 	return nil
 }
