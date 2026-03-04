@@ -98,7 +98,14 @@ func EnsureRepository(url, path, token string) error {
 // Handles fast-forward updates. For non-fast-forward scenarios (diverged branches),
 // returns an informative error with guidance.
 func UpdateRepository(path, token string) error {
-	fmt.Printf("Updating repository at %s\n", path)
+	return UpdateRepositoryQuiet(path, token, false)
+}
+
+// UpdateRepositoryQuiet updates the repository with optional quiet mode
+func UpdateRepositoryQuiet(path, token string, quiet bool) error {
+	if !quiet {
+		fmt.Printf("Updating repository at %s\n", path)
+	}
 
 	// Open the existing repository
 	repo, err := git.PlainOpen(path)
@@ -114,7 +121,7 @@ func UpdateRepository(path, token string) error {
 
 	// Get the remote config
 	remoteConfig := remote.Config()
-	if len(remoteConfig.URLs) > 0 {
+	if !quiet && len(remoteConfig.URLs) > 0 {
 		fmt.Printf("Remote URL: %s\n", remoteConfig.URLs[0])
 	}
 
@@ -159,7 +166,9 @@ func UpdateRepository(path, token string) error {
 	// Attempt to pull
 	err = worktree.Pull(pullOpts)
 	if err == git.NoErrAlreadyUpToDate {
-		fmt.Println("Repository is already up to date")
+		if !quiet {
+			fmt.Println("Repository is already up to date")
+		}
 		return nil
 	}
 
@@ -184,7 +193,9 @@ Your local changes are safe. Remote: origin/%s`, branchName)
 		return fmt.Errorf("failed to pull updates: %w", err)
 	}
 
-	fmt.Println("Repository updated successfully")
+	if !quiet {
+		fmt.Println("Repository updated successfully")
+	}
 	return nil
 }
 
@@ -533,6 +544,116 @@ To resolve:
 Fast-forward merges are supported automatically.`, branchName)
 }
 
+// RebaseBranch rebases the current branch onto the specified branch.
+// Note: go-git has limited rebase support. For complex rebases with conflicts,
+// this function will return an error with instructions to use native git.
+func RebaseBranch(path, branchName string) error {
+	// Open repository
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// Get current HEAD
+	head, err := repo.Head()
+	if err != nil {
+		return fmt.Errorf("failed to get HEAD: %w", err)
+	}
+
+	currentBranch := head.Name().Short()
+
+	// Get the branch reference to rebase onto
+	branchRef, err := repo.Reference(plumbing.NewBranchReferenceName(branchName), true)
+	if err != nil {
+		return fmt.Errorf("branch '%s' not found: %w", branchName, err)
+	}
+
+	// Check if already at the same commit
+	if head.Hash() == branchRef.Hash() {
+		fmt.Printf("Already up to date with '%s'\n", branchName)
+		return nil
+	}
+
+	// Get worktree
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Check if working tree is clean
+	status, err := worktree.Status()
+	if err != nil {
+		return fmt.Errorf("failed to get status: %w", err)
+	}
+	if !status.IsClean() {
+		return fmt.Errorf("working tree is not clean. Commit or stash changes before rebasing")
+	}
+
+	// Get commit objects
+	headCommit, err := repo.CommitObject(head.Hash())
+	if err != nil {
+		return fmt.Errorf("failed to get current commit: %w", err)
+	}
+
+	branchCommit, err := repo.CommitObject(branchRef.Hash())
+	if err != nil {
+		return fmt.Errorf("failed to get branch commit: %w", err)
+	}
+
+	// Check if branch is ancestor of current (already up to date)
+	isAncestor, err := headCommit.IsAncestor(branchCommit)
+	if err != nil {
+		return fmt.Errorf("failed to check ancestry: %w", err)
+	}
+	if isAncestor {
+		fmt.Printf("Already contains all commits from '%s'\n", branchName)
+		return nil
+	}
+
+	// Check if current is ancestor of branch (can fast-forward)
+	canFF, err := branchCommit.IsAncestor(headCommit)
+	if err != nil {
+		return fmt.Errorf("failed to check if fast-forward possible: %w", err)
+	}
+
+	if canFF {
+		// Can do a simple fast-forward
+		err = worktree.Checkout(&git.CheckoutOptions{
+			Hash:  branchRef.Hash(),
+			Force: false,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to fast-forward: %w", err)
+		}
+
+		// Update the branch reference
+		ref := plumbing.NewHashReference(head.Name(), branchRef.Hash())
+		err = repo.Storer.SetReference(ref)
+		if err != nil {
+			return fmt.Errorf("failed to update reference: %w", err)
+		}
+
+		fmt.Printf("Fast-forward to '%s' successful\n", branchName)
+		return nil
+	}
+
+	// Complex rebase needed - go-git doesn't handle conflicts well
+	return fmt.Errorf(`cannot automatically rebase '%s' onto '%s' - manual rebase required
+
+go-git does not support interactive rebase or automatic conflict resolution.
+
+To rebase manually:
+  1. cd %s
+  2. git rebase %s
+  3. If conflicts occur, resolve them:
+     - Edit conflicting files
+     - git add <resolved-files>
+     - git rebase --continue
+  4. Once complete: git push --force-with-lease
+
+Alternatively, use merge instead: chtsht repo update-from-main (without --rebase)`, currentBranch, branchName, path, branchName)
+}
+
 // EnsureWorkingBranch ensures the shared working branch exists and is checked out.
 // Returns the branch name that was ensured.
 func EnsureWorkingBranch(path, branchName string) (string, error) {
@@ -854,17 +975,34 @@ func GetLastCommit(path string) (*CommitInfo, error) {
 // =====================================================
 
 // PushBranch pushes the current branch to remote.
+// PushOptions configures branch push behavior
+type PushOptions struct {
+	SetUpstream bool // Set up tracking to remote branch
+	Force       bool // Force push (use with caution)
+}
+
 func PushBranch(path, branchName, token string, setUpstream bool) error {
+	return PushBranchWithOptions(path, branchName, token, PushOptions{SetUpstream: setUpstream})
+}
+
+func PushBranchWithOptions(path, branchName, token string, opts PushOptions) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	refSpec := fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)
+
+	// Add + prefix for force push (equivalent to --force-with-lease behavior)
+	if opts.Force {
+		refSpec = "+" + refSpec
 	}
 
 	pushOpts := &git.PushOptions{
 		Progress: os.Stdout,
 		// Always specify which branch to push to avoid pushing unintended branches
 		RefSpecs: []config.RefSpec{
-			config.RefSpec(fmt.Sprintf("refs/heads/%s:refs/heads/%s", branchName, branchName)),
+			config.RefSpec(refSpec),
 		},
 	}
 
@@ -886,7 +1024,7 @@ func PushBranch(path, branchName, token string, setUpstream bool) error {
 	}
 
 	// If setUpstream flag is true, update local branch config to track remote
-	if setUpstream {
+	if opts.SetUpstream {
 		// Get the branch reference
 		branchRef := plumbing.NewBranchReferenceName(branchName)
 
