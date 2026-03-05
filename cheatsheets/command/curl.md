@@ -1,7 +1,8 @@
 ---
-description: ""
+description: "Make HTTP requests from the CLI."
 last_updated: "{{last_update}}"
 tags: ["command", "command", "curl", "http"]
+last_updated: "2026-03-05"
 ---
 ## Table of Contents <!-- omit in toc -->
 
