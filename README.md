@@ -1,8 +1,21 @@
-# Cheatsheets
+# Cheatsheets <!-- omit in toc -->
 
 My personal `~/.cheatsheets`. These are `man`-style documents written in Markdown, which I can easily open in a terminal editor or pager to view/search.
 
 Cheatsheets are in Markdown format, and can be used cross-platform, version controlled, and opened in any number of editors or viewers.
+
+## Table of Contents <!-- omit in toc -->
+
+- [Index](#index)
+- [Setup](#setup)
+- [CLI Tool](#cli-tool)
+- [Install CLI](#install-cli)
+    - [Quick Install (recommended)](#quick-install-recommended)
+    - [Manual Install](#manual-install)
+  - [Build from source](#build-from-source)
+  - [Configuration](#configuration)
+  - [Usage](#usage)
+  - [Git Workflow](#git-workflow)
 
 ## Index
 
