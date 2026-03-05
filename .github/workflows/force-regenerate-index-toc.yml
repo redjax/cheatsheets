@@ -1,0 +1,68 @@
+---
+name: Force Regenerate Index and TOC
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to regenerate on'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Generate index
+        run: |
+          python .scripts/generate_index.py
+          echo "Generated INDEX.md"
+
+      - name: Generate TOC for all cheatsheets
+        run: |
+          python .scripts/generate_toc.py --write cheatsheets/
+          echo "Updated TOC in all cheatsheets"
+
+      - name: Check for changes
+        id: check_git_changes
+        run: |
+          if git diff --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes detected:"
+            git diff --stat
+          fi
+
+      - name: Commit and push changes
+        if: steps.check_git_changes.outputs.has_changes == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add INDEX.md cheatsheets/
+          git commit -m "chore: force-regenerate index and TOC [skip ci]"
+          git push origin HEAD:${{ inputs.branch }}
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check_git_changes.outputs.has_changes }}" = "true" ]; then
+            echo "Index and TOC regenerated and pushed to ${{ inputs.branch }}"
+          else
+            echo "Index and TOC are already up to date on ${{ inputs.branch }}"
+          fi
