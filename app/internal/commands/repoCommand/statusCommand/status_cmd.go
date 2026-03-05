@@ -52,11 +52,7 @@ var StatusCmd = &cobra.Command{
 		// Display status
 		fmt.Println("=== Repository Status ===")
 		fmt.Printf("Location: %s\n", cfg.Git.ClonePath)
-		fmt.Printf("Branch: %s", status.CurrentBranch)
-		if status.IsOnMainBranch {
-			fmt.Print(" ⚠️  (on main branch - consider using machine branch)")
-		}
-		fmt.Println()
+		fmt.Printf("Branch: %s\n", status.CurrentBranch)
 
 		// Show last commit
 		if status.LastCommit != nil {
