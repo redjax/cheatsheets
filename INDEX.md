@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-03-04"
+last_updated: "2026-03-05"
 ---
 
 # Cheatsheets Index
@@ -25,6 +25,7 @@ last_updated: "2026-03-04"
 
 | Name | Description | Tags |
 | --- | --- | --- |
+| [cURL <!-- omit in toc -->](cheatsheets/command/curl.md) |  | command, command, curl, http |
 | [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
 | [Scoop <!-- omit in toc -->](cheatsheets/command/scoop.md) | Scoop is a userland package manager for Windows, similar to Homebrew. | command, package_management windows |
 | [Winget <!-- omit in toc -->](cheatsheets/command/winget.md) | CLI package manager for Windows. | command, wsl, windows, package_management |

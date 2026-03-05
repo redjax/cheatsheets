@@ -3,6 +3,19 @@ description: ""
 last_updated: "{{last_update}}"
 tags: ["command", "command", "curl", "http"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [Usage](#usage)
+  - [GET](#get)
+  - [POST](#post)
+  - [PUT](#put)
+  - [PATCH](#patch)
+  - [DELETE](#delete)
+  - [Save request as .json for inspection](#save-request-as-json-for-inspection)
+- [File will be saved to ./request.json](#file-will-be-saved-to-requestjson)
+  - [Save response to a .json file](#save-response-to-a-json-file)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # cURL <!-- omit in toc -->
 
