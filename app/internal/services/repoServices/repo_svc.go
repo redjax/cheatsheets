@@ -1204,6 +1204,48 @@ func PushBranchWithOptions(path, branchName, token string, opts PushOptions) err
 	return nil
 }
 
+// StageCommitAndPush stages all changes, commits with the provided message, and pushes to remote.
+// This is a convenience function that combines StageAll, CommitChanges, and PushBranch.
+func StageCommitAndPush(path, message, authorName, authorEmail, token string) error {
+	// First, check if there are any changes to commit
+	isClean, err := IsWorkingTreeClean(path)
+	if err != nil {
+		return fmt.Errorf("failed to check working tree status: %w", err)
+	}
+	if isClean {
+		fmt.Println("No changes to commit")
+		return nil
+	}
+
+	// Stage all changes
+	err = StageAll(path)
+	if err != nil {
+		return fmt.Errorf("failed to stage changes: %w", err)
+	}
+
+	// Commit changes
+	commitHash, err := CommitChanges(path, message, authorName, authorEmail)
+	if err != nil {
+		return fmt.Errorf("failed to commit changes: %w", err)
+	}
+	fmt.Printf("Created commit %s: %s\n", commitHash, message)
+
+	// Get current branch name for push
+	branchName, err := GetCurrentBranch(path)
+	if err != nil {
+		return fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	// Push to remote
+	err = PushBranch(path, branchName, token, false)
+	if err != nil {
+		return fmt.Errorf("failed to push changes: %w", err)
+	}
+	fmt.Printf("Pushed changes to remote branch '%s'\n", branchName)
+
+	return nil
+}
+
 // GetBranchDivergence returns commits ahead/behind remote.
 func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err error) {
 	repo, err := git.PlainOpen(path)

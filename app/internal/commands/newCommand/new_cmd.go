@@ -140,5 +140,6 @@ func runNew(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\nSuccessfully created %s\n", targetFile)
+	fmt.Println("\nNext: chtsht repo commit --auto-commit --push")
 	return nil
 }

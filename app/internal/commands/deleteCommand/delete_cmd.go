@@ -106,6 +106,7 @@ func deleteCheatsheet(cfg *config.Config, cheatsheetType, name string, skipConfi
 	}
 
 	fmt.Printf("Deleted [%s] %s\n", cheatsheetType, name)
+	fmt.Println("\nNext: chtsht repo commit --auto-commit --push")
 	return nil
 }
 

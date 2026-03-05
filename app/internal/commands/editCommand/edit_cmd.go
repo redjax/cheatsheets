@@ -90,8 +90,16 @@ func editCheatsheet(cfg *config.Config, typeDir, name string) error {
 		return fmt.Errorf("cheatsheet '%s' not found in type '%s'", name, typeDir)
 	}
 
-	_, err := openInEditor(filePath)
-	return err
+	changed, err := openInEditor(filePath)
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		fmt.Println("\nNext: chtsht repo commit --auto-commit --push")
+	}
+
+	return nil
 }
 
 // editCheatsheetByName finds and edits a cheatsheet by name across all types
