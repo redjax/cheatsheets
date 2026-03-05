@@ -771,6 +771,95 @@ func ListBranches(path string) ([]string, error) {
 	return branches, nil
 }
 
+// CleanupMergedBranches removes local branches that have been deleted on the remote.
+// Only deletes branches that have an upstream tracking branch configured (safe to assume they were pushed).
+// Returns a list of deleted branch names.
+func CleanupMergedBranches(path, token string) ([]string, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open repository: %w", err)
+	}
+
+	// First, fetch from remote to get the latest remote branch status
+	fmt.Println("Fetching from remote to check branch status...")
+	fetchOpts := &git.FetchOptions{
+		RemoteName: "origin",
+		Progress:   os.Stdout,
+	}
+
+	if token != "" {
+		fetchOpts.Auth = &http.BasicAuth{
+			Username: token,
+			Password: "",
+		}
+	}
+
+	if err := repo.Fetch(fetchOpts); err != nil && err != git.NoErrAlreadyUpToDate {
+		return nil, fmt.Errorf("failed to fetch from remote: %w", err)
+	}
+
+	// Get repository config to check for upstream tracking
+	cfg, err := repo.Config()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get repository config: %w", err)
+	}
+
+	// Get list of local branches
+	localBranches, err := ListBranches(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list branches: %w", err)
+	}
+
+	// Get current branch so we don't try to delete it
+	currentBranch, err := GetCurrentBranch(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	deletedBranches := []string{}
+
+	// Check each local branch
+	for _, branch := range localBranches {
+		// Skip main/master branches
+		if branch == "main" || branch == "master" {
+			continue
+		}
+
+		// Skip current branch
+		if branch == currentBranch {
+			continue
+		}
+
+		// Check if this branch has upstream tracking configured
+		branchConfig, exists := cfg.Branches[branch]
+		if !exists || branchConfig.Remote == "" {
+			// No upstream configured - branch was never pushed, so skip it
+			fmt.Printf("Skipping '%s' (not pushed to remote)\n", branch)
+			continue
+		}
+
+		// Check if the remote tracking branch still exists
+		remoteRefName := fmt.Sprintf("refs/remotes/%s/%s", branchConfig.Remote, branch)
+		_, err := repo.Reference(plumbing.ReferenceName(remoteRefName), true)
+		if err == nil {
+			// Remote branch still exists, skip
+			continue
+		}
+
+		// Remote branch doesn't exist - safe to delete local branch
+		fmt.Printf("Deleting local branch '%s' (removed from remote)\n", branch)
+		branchRef := plumbing.NewBranchReferenceName(branch)
+		if err := repo.Storer.RemoveReference(branchRef); err != nil {
+			fmt.Printf("Warning: failed to delete branch '%s': %v\n", branch, err)
+			continue
+		}
+
+		deletedBranches = append(deletedBranches, branch)
+	}
+
+	return deletedBranches, nil
+}
+
 // =====================================================
 // STAGING OPERATIONS
 // =====================================================
@@ -904,6 +993,67 @@ func GetUntrackedFiles(path string) ([]string, error) {
 	}
 
 	return untracked, nil
+}
+
+// CreateFeatureBranch creates a feature branch, commits changes, pushes to remote,
+// and switches back to the original branch. This is used for the auto-feature-branch workflow.
+// Returns the name of the feature branch created.
+func CreateFeatureBranch(path, branchName, commitMessage, authorName, authorEmail, token string) (string, error) {
+	// Get the current branch so we can switch back
+	originalBranch, err := GetCurrentBranch(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	// Check if branch already exists
+	exists, err := BranchExists(path, branchName)
+	if err != nil {
+		return "", fmt.Errorf("failed to check if branch exists: %w", err)
+	}
+	if exists {
+		return "", fmt.Errorf("branch '%s' already exists. Please delete it or choose a different name", branchName)
+	}
+
+	// Create and checkout the feature branch
+	if err := CreateAndCheckoutBranch(path, branchName); err != nil {
+		return "", fmt.Errorf("failed to create branch '%s': %w", branchName, err)
+	}
+
+	// Stage all changes
+	if err := StageAll(path); err != nil {
+		// Try to switch back to original branch before returning error
+		_ = CheckoutBranch(path, originalBranch)
+		return "", fmt.Errorf("failed to stage changes: %w", err)
+	}
+
+	// Commit the changes
+	commitHash, err := CommitChanges(path, commitMessage, authorName, authorEmail)
+	if err != nil {
+		// Try to switch back to original branch before returning error
+		_ = CheckoutBranch(path, originalBranch)
+		return "", fmt.Errorf("failed to commit changes: %w", err)
+	}
+
+	fmt.Printf("Created commit %s on branch '%s'\n", commitHash[:7], branchName)
+
+	// Push the branch with upstream tracking
+	fmt.Printf("Pushing branch '%s' to remote...\n", branchName)
+	if err := PushBranchWithOptions(path, branchName, token, PushOptions{SetUpstream: true}); err != nil {
+		// Branch is created and committed locally, but push failed
+		// Switch back to original branch and notify user
+		_ = CheckoutBranch(path, originalBranch)
+		return branchName, fmt.Errorf("branch created locally but push failed: %w\nBranch: %s (commit: %s)", err, branchName, commitHash[:7])
+	}
+
+	fmt.Printf("Successfully pushed branch '%s'\n", branchName)
+
+	// Switch back to the original branch
+	fmt.Printf("Switching back to '%s'\n", originalBranch)
+	if err := CheckoutBranch(path, originalBranch); err != nil {
+		return branchName, fmt.Errorf("branch created and pushed successfully, but failed to switch back to '%s': %w", originalBranch, err)
+	}
+
+	return branchName, nil
 }
 
 // =====================================================
@@ -1050,6 +1200,48 @@ func PushBranchWithOptions(path, branchName, token string, opts PushOptions) err
 
 		fmt.Printf("Branch '%s' set up to track 'origin/%s'\n", branchName, branchName)
 	}
+
+	return nil
+}
+
+// StageCommitAndPush stages all changes, commits with the provided message, and pushes to remote.
+// This is a convenience function that combines StageAll, CommitChanges, and PushBranch.
+func StageCommitAndPush(path, message, authorName, authorEmail, token string) error {
+	// First, check if there are any changes to commit
+	isClean, err := IsWorkingTreeClean(path)
+	if err != nil {
+		return fmt.Errorf("failed to check working tree status: %w", err)
+	}
+	if isClean {
+		fmt.Println("No changes to commit")
+		return nil
+	}
+
+	// Stage all changes
+	err = StageAll(path)
+	if err != nil {
+		return fmt.Errorf("failed to stage changes: %w", err)
+	}
+
+	// Commit changes
+	commitHash, err := CommitChanges(path, message, authorName, authorEmail)
+	if err != nil {
+		return fmt.Errorf("failed to commit changes: %w", err)
+	}
+	fmt.Printf("Created commit %s: %s\n", commitHash, message)
+
+	// Get current branch name for push
+	branchName, err := GetCurrentBranch(path)
+	if err != nil {
+		return fmt.Errorf("failed to get current branch: %w", err)
+	}
+
+	// Push to remote
+	err = PushBranch(path, branchName, token, false)
+	if err != nil {
+		return fmt.Errorf("failed to push changes: %w", err)
+	}
+	fmt.Printf("Pushed changes to remote branch '%s'\n", branchName)
 
 	return nil
 }

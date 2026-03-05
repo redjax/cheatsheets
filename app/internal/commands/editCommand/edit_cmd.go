@@ -14,7 +14,6 @@ import (
 	"github.com/redjax/cheatsheets/internal/config"
 	"github.com/redjax/cheatsheets/internal/guards"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
-	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +54,9 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Pre-flight checks - ensure repo exists and we're on working branch
+	// Pre-flight checks - ensure repo exists
 	guardCtx := guards.NewGuardContext(cfg)
-	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned); err != nil {
 		return err
 	}
 
@@ -66,49 +65,46 @@ func runEdit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
 	}
 
-	// Auto-switch to working branch if enabled and on main
-	if cfg.Git.AutoBranch {
-		currentBranch, err := reposervices.GetCurrentBranch(cfg.Git.ClonePath)
-		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			workingBranch := cfg.Git.WorkingBranch
-			if workingBranch == "" {
-				workingBranch = "working"
-			}
-			_, _ = reposervices.EnsureWorkingBranch(cfg.Git.ClonePath, workingBranch)
-		}
-	}
-
 	// Handle different scenarios
 	if len(args) == 0 && typeFilter == "" {
 		// No arguments - show interactive selector
-		return editWithSelector(cfg.Git.ClonePath, "")
+		return editWithSelector(cfg, "")
 	} else if len(args) == 0 && typeFilter != "" {
 		// Only type provided - show selector filtered by type
-		return editWithSelector(cfg.Git.ClonePath, typeFilter)
+		return editWithSelector(cfg, typeFilter)
 	} else if len(args) == 1 && typeFilter != "" {
 		// Both type and name provided
-		return editCheatsheet(cfg.Git.ClonePath, typeFilter, args[0])
+		return editCheatsheet(cfg, typeFilter, args[0])
 	} else {
 		// Only name provided - search across all types
-		return editCheatsheetByName(cfg.Git.ClonePath, args[0])
+		return editCheatsheetByName(cfg, args[0])
 	}
 }
 
 // editCheatsheet opens a specific cheatsheet file in the default editor
-func editCheatsheet(repoPath, typeDir, name string) error {
-	filePath := cheatsheetservice.GetCheatsheetPath(repoPath, typeDir, name)
+func editCheatsheet(cfg *config.Config, typeDir, name string) error {
+	filePath := cheatsheetservice.GetCheatsheetPath(cfg.Git.ClonePath, typeDir, name)
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return fmt.Errorf("cheatsheet '%s' not found in type '%s'", name, typeDir)
 	}
 
-	return openInEditor(filePath)
+	changed, err := openInEditor(filePath)
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		fmt.Println("\nNext: chtsht repo commit --auto-commit --push")
+	}
+
+	return nil
 }
 
 // editCheatsheetByName finds and edits a cheatsheet by name across all types
-func editCheatsheetByName(repoPath, name string) error {
-	availableTypes, err := cheatsheetservice.GetAvailableTypes(repoPath)
+func editCheatsheetByName(cfg *config.Config, name string) error {
+	availableTypes, err := cheatsheetservice.GetAvailableTypes(cfg.Git.ClonePath)
 	if err != nil {
 		return fmt.Errorf("error getting available types: %w", err)
 	}
@@ -120,7 +116,7 @@ func editCheatsheetByName(repoPath, name string) error {
 	}
 
 	for _, t := range availableTypes {
-		filePath := cheatsheetservice.GetCheatsheetPath(repoPath, t, name)
+		filePath := cheatsheetservice.GetCheatsheetPath(cfg.Git.ClonePath, t, name)
 		if _, err := os.Stat(filePath); err == nil {
 			foundPaths = append(foundPaths, struct {
 				Type string
@@ -136,7 +132,7 @@ func editCheatsheetByName(repoPath, name string) error {
 	// If only one match, open it directly
 	if len(foundPaths) == 1 {
 		fmt.Printf("Editing [%s] %s\n", foundPaths[0].Type, name)
-		return openInEditor(foundPaths[0].Path)
+		return editCheatsheet(cfg, foundPaths[0].Type, name)
 	}
 
 	// Multiple matches - show selector
@@ -148,7 +144,7 @@ func editCheatsheetByName(repoPath, name string) error {
 }
 
 // editWithSelector shows an interactive selector for choosing a cheatsheet to edit
-func editWithSelector(repoPath, typeFilter string) error {
+func editWithSelector(cfg *config.Config, typeFilter string) error {
 	// Implementation would be similar to show command's selector
 	// For now, return an error suggesting to specify a name
 	if typeFilter != "" {
@@ -157,23 +153,24 @@ func editWithSelector(repoPath, typeFilter string) error {
 	return fmt.Errorf("please specify a cheatsheet name: chtsht edit <name>")
 }
 
-// openInEditor opens a file in the user's default editor using a temp file for safety
-func openInEditor(originalPath string) error {
+// openInEditor opens a file in the user's default editor using a temp file for safety.
+// Returns (changed bool, error) where changed indicates if the file was modified.
+func openInEditor(originalPath string) (bool, error) {
 	editor, err := getEditor()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Create cheatsheets temp directory for easier cleanup
 	tempDir := filepath.Join(os.TempDir(), "cheatsheets")
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		return fmt.Errorf("failed to create temp directory: %w", err)
+		return false, fmt.Errorf("failed to create temp directory: %w", err)
 	}
 
 	// Create a temporary file for editing
 	tempFile, err := os.CreateTemp(tempDir, "chtsht-edit-*.md")
 	if err != nil {
-		return fmt.Errorf("failed to create temp file: %w", err)
+		return false, fmt.Errorf("failed to create temp file: %w", err)
 	}
 	tempPath := tempFile.Name()
 
@@ -186,7 +183,7 @@ func openInEditor(originalPath string) error {
 	// Copy original file to temp file
 	originalFile, err := os.Open(originalPath)
 	if err != nil {
-		return fmt.Errorf("failed to open original file: %w", err)
+		return false, fmt.Errorf("failed to open original file: %w", err)
 	}
 
 	_, err = io.Copy(tempFile, originalFile)
@@ -194,13 +191,13 @@ func openInEditor(originalPath string) error {
 	tempFile.Close() // Close before opening in editor
 
 	if err != nil {
-		return fmt.Errorf("failed to copy file to temp location: %w", err)
+		return false, fmt.Errorf("failed to copy file to temp location: %w", err)
 	}
 
 	// Get original file info for permission preservation
 	originalInfo, err := os.Stat(originalPath)
 	if err != nil {
-		return fmt.Errorf("failed to stat original file: %w", err)
+		return false, fmt.Errorf("failed to stat original file: %w", err)
 	}
 
 	fmt.Printf("Opening %s in %s\n", filepath.Base(originalPath), editor)
@@ -215,27 +212,27 @@ func openInEditor(originalPath string) error {
 	if err := cmd.Run(); err != nil {
 		// Check if this is just a non-zero exit code
 		if exitErr, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf("editor exited with code %d, changes not saved", exitErr.ExitCode())
+			return false, fmt.Errorf("editor exited with code %d, changes not saved", exitErr.ExitCode())
 		}
-		return fmt.Errorf("error running editor: %w", err)
+		return false, fmt.Errorf("error running editor: %w", err)
 	}
 
 	// Editor exited successfully - check if temp file was modified
 	tempInfo, err := os.Stat(tempPath)
 	if err != nil {
-		return fmt.Errorf("failed to stat temp file after editing: %w", err)
+		return false, fmt.Errorf("failed to stat temp file after editing: %w", err)
 	}
 
 	// Compare modification times
 	if !tempInfo.ModTime().After(originalInfo.ModTime()) {
 		fmt.Println("No changes made.")
-		return nil
+		return false, nil
 	}
 
 	// Read the edited content from temp file
 	editedContent, err := os.ReadFile(tempPath)
 	if err != nil {
-		return fmt.Errorf("failed to read edited content: %w", err)
+		return false, fmt.Errorf("failed to read edited content: %w", err)
 	}
 
 	// Update the last_updated field in the frontmatter
@@ -246,7 +243,7 @@ func openInEditor(originalPath string) error {
 
 	// Create backup of original
 	if err := copyFile(originalPath, backupPath); err != nil {
-		return fmt.Errorf("failed to create backup: %w", err)
+		return false, fmt.Errorf("failed to create backup: %w", err)
 	}
 
 	// Ensure backup is cleaned up after successful write
@@ -256,13 +253,13 @@ func openInEditor(originalPath string) error {
 	if err := os.WriteFile(originalPath, editedContent, originalInfo.Mode()); err != nil {
 		// Restore from backup on write failure
 		if restoreErr := copyFile(backupPath, originalPath); restoreErr != nil {
-			return fmt.Errorf("failed to write changes AND failed to restore backup: write error: %w, restore error: %v", err, restoreErr)
+			return false, fmt.Errorf("failed to write changes AND failed to restore backup: write error: %w, restore error: %v", err, restoreErr)
 		}
-		return fmt.Errorf("failed to write changes (backup restored): %w", err)
+		return false, fmt.Errorf("failed to write changes (backup restored): %w", err)
 	}
 
 	fmt.Printf("Successfully saved changes to %s\n", originalPath)
-	return nil
+	return true, nil
 }
 
 // copyFile copies a file from src to dst

@@ -11,6 +11,7 @@ import (
 var (
 	message    string
 	autoCommit bool
+	autoPush   bool
 )
 
 // CommitCmd represents the commit command
@@ -21,8 +22,9 @@ var CommitCmd = &cobra.Command{
 	
 Examples:
   chtsht repo commit -m "Updated Linux cheatsheet"
-  chtsht repo commit --auto-commit              # Stage all + auto-generate message
-  chtsht repo commit --auto-commit -m "Custom"  # Stage all + custom message`,
+  chtsht repo commit --auto-commit                     # Stage all + auto-generate message
+  chtsht repo commit --auto-commit --push              # Stage all + commit + push
+  chtsht repo commit --auto-commit -m "Custom" --push  # Stage all + custom message + push`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get the config file path from the persistent flag
 		configFile, err := cmd.Flags().GetString("config-file")
@@ -53,6 +55,50 @@ Examples:
 			return fmt.Errorf("repository is not cloned at %s. Run 'chtsht repo clone' first", cfg.Git.ClonePath)
 		}
 
+		// If auto-commit with auto-push, use the all-in-one function
+		if autoCommit && autoPush {
+			// Check if there are changes
+			clean, err := reposervices.IsWorkingTreeClean(cfg.Git.ClonePath)
+			if err != nil {
+				return fmt.Errorf("failed to check working tree: %w", err)
+			}
+
+			if clean {
+				fmt.Println("No changes to commit")
+				return nil
+			}
+
+			// Generate message if not provided
+			if message == "" {
+				// Get list of changed files for the message
+				fileStatuses, err := reposervices.GetDetailedFileStatus(cfg.Git.ClonePath)
+				if err == nil && len(fileStatuses) > 0 {
+					// Count files and generate message
+					if len(fileStatuses) == 1 {
+						message = fmt.Sprintf("update %s", fileStatuses[0].Path)
+					} else if len(fileStatuses) <= 3 {
+						message = fmt.Sprintf("update %d files", len(fileStatuses))
+					} else {
+						message = fmt.Sprintf("update %d files", len(fileStatuses))
+					}
+				} else {
+					message = "update multiple files"
+				}
+				fmt.Printf("Auto-generated message: %s\n", message)
+			}
+
+			// Use the all-in-one StageCommitAndPush function
+			return reposervices.StageCommitAndPush(
+				cfg.Git.ClonePath,
+				message,
+				cfg.Git.AuthorName,
+				cfg.Git.AuthorEmail,
+				cfg.Git.Token,
+			)
+		}
+
+		// Original logic for commit-only
+
 		// If auto-commit, stage all changes first
 		if autoCommit {
 			clean, err := reposervices.IsWorkingTreeClean(cfg.Git.ClonePath)
@@ -75,14 +121,14 @@ Examples:
 				if err == nil && len(staged) > 0 {
 					// Generate message based on files
 					if len(staged) == 1 {
-						message = fmt.Sprintf("Update %s", staged[0])
+						message = fmt.Sprintf("update %s", staged[0])
 					} else if len(staged) <= 3 {
-						message = fmt.Sprintf("Update %d files", len(staged))
+						message = fmt.Sprintf("update %d files", len(staged))
 					} else {
-						message = fmt.Sprintf("Update %d files", len(staged))
+						message = fmt.Sprintf("update %d files", len(staged))
 					}
 				} else {
-					message = "Auto-commit changes"
+					message = "update multiple files"
 				}
 				fmt.Printf("Auto-generated message: %s\n", message)
 			}
@@ -126,7 +172,18 @@ Examples:
 		fmt.Printf("Created commit %s\n", hash)
 		fmt.Printf("  Author: %s <%s>\n", authorName, authorEmail)
 		fmt.Printf("  Message: %s\n", message)
-		fmt.Println("\nNext: chtsht repo push")
+
+		// If --push flag is set, push after committing
+		if autoPush {
+			fmt.Println("\nPushing to remote...")
+			err = reposervices.PushBranch(cfg.Git.ClonePath, branch, cfg.Git.Token, false)
+			if err != nil {
+				return fmt.Errorf("commit succeeded but push failed: %w", err)
+			}
+			fmt.Printf("Pushed changes to remote branch '%s'\n", branch)
+		} else {
+			fmt.Println("\nNext: chtsht repo push")
+		}
 
 		return nil
 	},
@@ -135,4 +192,5 @@ Examples:
 func init() {
 	CommitCmd.Flags().StringVarP(&message, "message", "m", "", "Commit message (optional with --auto-commit)")
 	CommitCmd.Flags().BoolVarP(&autoCommit, "auto-commit", "a", false, "Automatically stage all changes and generate message if not provided")
+	CommitCmd.Flags().BoolVarP(&autoPush, "push", "p", false, "Push to remote after committing")
 }

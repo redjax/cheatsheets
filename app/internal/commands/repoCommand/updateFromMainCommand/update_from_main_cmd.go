@@ -22,7 +22,10 @@ var UpdateFromMainCmd = &cobra.Command{
 	Short:         "Merge or rebase changes from main into current working branch",
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	Long: `Merge or rebase the latest changes from the main branch into your current working branch.
+	Long: `Merge or rebase the latest changes from the main branch into your current branch.
+
+NOTE: This command is only useful if you're working on a separate branch.
+If you're working directly on main, you don't need this command - just use 'chtsht repo pull'.
 
 This command will:
   - Ensure you are not on the main branch
@@ -35,7 +38,7 @@ Use --rebase for a cleaner history (but requires force-push if already published
 Use --manual to see manual git commands instead of automatic execution.
 
 This is useful when main has been updated and you want to incorporate
-those changes into your working branch before continuing work.`,
+those changes into your branch before continuing work.`,
 	Example: `  chtsht repo update-from-main              # Merge main into current branch
   chtsht repo update-from-main --rebase     # Rebase current branch onto main
   chtsht repo update-from-main --manual     # Show manual git commands`,

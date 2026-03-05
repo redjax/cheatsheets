@@ -61,9 +61,9 @@ func runNew(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Pre-flight checks - ensure repo exists and we're on working branch
+	// Pre-flight checks - ensure repo exists
 	guardCtx := guards.NewGuardContext(cfg)
-	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned); err != nil {
 		return err
 	}
 
@@ -140,5 +140,6 @@ func runNew(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("\nSuccessfully created %s\n", targetFile)
+	fmt.Println("\nNext: chtsht repo commit --auto-commit --push")
 	return nil
 }

@@ -2,6 +2,7 @@ package repocommand
 
 import (
 	branchcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/branchCommand"
+	cleanupcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/cleanupCommand"
 	clonecommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/cloneCommand"
 	commitcommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/commitCommand"
 	mergetomaincommand "github.com/redjax/cheatsheets/internal/commands/repoCommand/mergeToMainCommand"
@@ -29,6 +30,7 @@ var RepoCmd = &cobra.Command{
 func init() {
 	// Register subcommands
 	RepoCmd.AddCommand(branchcommand.BranchCmd)
+	RepoCmd.AddCommand(cleanupcommand.CleanupCmd)
 	RepoCmd.AddCommand(clonecommand.CloneCmd)
 	RepoCmd.AddCommand(commitcommand.CommitCmd)
 	RepoCmd.AddCommand(mergetomaincommand.MergeToMainCmd)
