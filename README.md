@@ -13,7 +13,13 @@ Check the [auto-generated index file](./INDEX.md) for a map of the cheatsheets.
 Clone the repository to a directory, i.e. `~/.cheatsheets`:
 
 ```shell
-git clone git@github.com:redjax/cheatsheets.git ~/.cheatsheets
+git clone git@github.com:redjax/cheatsheets.git ~/git/cheatsheets
+```
+
+Create a symlink of the [`cheatsheets/` directory](./cheatsheets/):
+
+```shell
+ln -s $HOME/git/cheatsheets $HOME/.cheatsheets
 ```
 
 ## CLI Tool
@@ -24,9 +30,35 @@ The CLI tool clones a "working copy" of the repository to a location defined in 
 
 You can `cd` to the `chtsht`-managed repository using `chtsht cd`, and synchronize changes with `chtsht sync`.
 
-### Installation
+## Install CLI
+
+#### Quick Install (recommended)
+
+- Linux / macOS (bash):
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/redjax/cheatsheets/main/.scripts/install.sh | bash
+```
+
+- Windows (PowerShell):
+
+```powershell
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/redjax/cheatsheets/main/.scripts/install.ps1)))
+```
+
+> [!TIP]
+> Add `-s -- --auto` (bash) or `-Auto` (PowerShell) to skip confirmation prompts.
+
+The install script downloads the latest release from GitHub and installs to:
+
+- Linux / macOS: `~/.local/bin/chtsht`
+- Windows: `%LOCALAPPDATA%\chtsht\chtsht.exe` (added to user PATH automatically)
+
+#### Manual Install
 
 Check the [releases page](https://github.com/redjax/cheatsheets/releases), look for releases with `v0.0.0` tags (the Go app). Cheatsheet releases are tagged like `Cheatsheets <date>-<shorthash>`.
+
+Download the zip for your platform, extract the binary, and place it somewhere on your `$PATH`.
 
 ### Build from source
 
