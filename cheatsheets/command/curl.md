@@ -1,5 +1,5 @@
 ---
-description: "Make HTTP requests from the CLI."
+description: "cURL is a tool for transferring data to or from a server using URLs. It is a terminal-based HTTP client with powerful capabilities."
 last_updated: "{{last_update}}"
 tags: ["command", "command", "curl", "http"]
 last_updated: "2026-03-05"
