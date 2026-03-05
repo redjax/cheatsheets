@@ -83,7 +83,7 @@ jobs:
           fi
           
       - name: Generate index
-        if: steps.check_changes.outputs.new_files == 'true'
+        if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
         run: |
           python .scripts/generate_index.py
           echo "Generated INDEX.md"
