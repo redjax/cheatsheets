@@ -13,6 +13,7 @@ import (
 	listcommand "github.com/redjax/cheatsheets/internal/commands/listCommand"
 	newcommand "github.com/redjax/cheatsheets/internal/commands/newCommand"
 	repocommand "github.com/redjax/cheatsheets/internal/commands/repoCommand"
+	selfcommand "github.com/redjax/cheatsheets/internal/commands/selfCommand"
 	showcommand "github.com/redjax/cheatsheets/internal/commands/showCommand"
 	synccommand "github.com/redjax/cheatsheets/internal/commands/syncCommand"
 	"github.com/spf13/cobra"
@@ -51,6 +52,7 @@ func init() {
 	rootCmd.AddCommand(listcommand.ListCmd)
 	rootCmd.AddCommand(newcommand.NewCmd)
 	rootCmd.AddCommand(repocommand.RepoCmd)
+	rootCmd.AddCommand(selfcommand.SelfCmd)
 	rootCmd.AddCommand(showcommand.ShowCmd)
 	rootCmd.AddCommand(synccommand.SyncCmd)
 
