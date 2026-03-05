@@ -49,6 +49,7 @@ func IsRepositoryCloned(path string) (bool, error) {
 
 // CloneRepository clones the repository from the given URL to the specified path.
 // If a token is provided, it will be used for authentication.
+// Always checks out main branch after cloning.
 func CloneRepository(url, path, token string) error {
 	fmt.Printf("Cloning repository from %s to %s\n", url, path)
 
@@ -65,13 +66,36 @@ func CloneRepository(url, path, token string) error {
 		}
 	}
 
-	_, err := git.PlainClone(path, false, cloneOpts)
+	repo, err := git.PlainClone(path, false, cloneOpts)
 
 	if err != nil {
 		return fmt.Errorf("failed to clone repository: %w", err)
 	}
 
-	fmt.Println("Repository cloned successfully")
+	// Always check out main branch after cloning
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("failed to get worktree: %w", err)
+	}
+
+	// Try main first, fall back to master
+	mainBranch := "main"
+	err = worktree.Checkout(&git.CheckoutOptions{
+		Branch: plumbing.NewBranchReferenceName(mainBranch),
+	})
+
+	if err != nil {
+		// Try master if main doesn't exist
+		mainBranch = "master"
+		err = worktree.Checkout(&git.CheckoutOptions{
+			Branch: plumbing.NewBranchReferenceName(mainBranch),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to checkout main/master branch: %w", err)
+		}
+	}
+
+	fmt.Printf("Repository cloned successfully (on %s branch)\n", mainBranch)
 	return nil
 }
 
@@ -1259,84 +1283,45 @@ func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err
 		return 0, 0, fmt.Errorf("failed to get local branch: %w", err)
 	}
 
-	// Get remote reference
-	remote, err := repo.Remote("origin")
+	// Get remote tracking branch reference (e.g., refs/remotes/origin/main)
+	remoteTrackingRef := plumbing.NewRemoteReferenceName("origin", branchName)
+	remoteRef, err := repo.Reference(remoteTrackingRef, true)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to get remote: %w", err)
+		// Remote tracking branch doesn't exist - likely all commits are unpushed
+		return 0, 0, fmt.Errorf("could not find remote reference for branch %s", remoteTrackingRef)
 	}
 
-	listOpts := &git.ListOptions{}
-	if token != "" {
-		listOpts.Auth = &http.BasicAuth{
-			Username: token,
-			Password: "",
-		}
+	// If hashes match, we're in sync
+	if localRef.Hash() == remoteRef.Hash() {
+		return 0, 0, nil
 	}
 
-	refs, err := remote.List(listOpts)
-	if err != nil {
-		return 0, 0, fmt.Errorf("failed to list remote references: %w", err)
-	}
-
-	var remoteHash plumbing.Hash
-	remoteRefName := plumbing.NewRemoteReferenceName("origin", branchName)
-	for _, ref := range refs {
-		if ref.Name() == remoteRefName {
-			remoteHash = ref.Hash()
-			break
-		}
-	}
-
-	// If remote branch doesn't exist, we're only ahead
-	if remoteHash.IsZero() {
-		// Count local commits
-		commits, err := repo.Log(&git.LogOptions{
-			From: localRef.Hash(),
-		})
-		if err != nil {
-			return 0, 0, fmt.Errorf("failed to get log: %w", err)
-		}
-
-		count := 0
-		err = commits.ForEach(func(c *object.Commit) error {
-			count++
-			return nil
-		})
-		return count, 0, err
-	}
-
-	// Count commits between local and remote
+	// Get commit objects
 	localCommit, err := repo.CommitObject(localRef.Hash())
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to get local commit: %w", err)
 	}
 
-	remoteCommit, err := repo.CommitObject(remoteHash)
+	remoteCommit, err := repo.CommitObject(remoteRef.Hash())
 	if err != nil {
 		return 0, 0, fmt.Errorf("failed to get remote commit: %w", err)
-	}
-
-	// Simple comparison - if hashes match, no divergence
-	if localCommit.Hash == remoteCommit.Hash {
-		return 0, 0, nil
 	}
 
 	// Check if local is ahead of remote (remote is ancestor of local)
 	isLocalAhead, err := localCommit.IsAncestor(remoteCommit)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to check ancestry: %w", err)
+		// If we can't determine ancestry, assume in sync
+		return 0, 0, nil
 	}
 
 	// Check if remote is ahead of local (local is ancestor of remote)
 	isRemoteAhead, err := remoteCommit.IsAncestor(localCommit)
 	if err != nil {
-		return 0, 0, fmt.Errorf("failed to check ancestry: %w", err)
+		// If we can't determine ancestry, assume in sync
+		return 0, 0, nil
 	}
 
-	ahead = 0
-	behind = 0
-
-	// If remote is ancestor of local, count commits ahead
+	// Count commits ahead (local has commits remote doesn't)
 	if isLocalAhead {
 		commits, err := repo.Log(&git.LogOptions{
 			From: localCommit.Hash,
@@ -1347,14 +1332,17 @@ func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err
 
 		err = commits.ForEach(func(c *object.Commit) error {
 			if c.Hash == remoteCommit.Hash {
-				return fmt.Errorf("stop")
+				return fmt.Errorf("stop") // Found remote commit, stop counting
 			}
 			ahead++
 			return nil
 		})
+		if err != nil && err.Error() != "stop" {
+			return 0, 0, err
+		}
 	}
 
-	// If local is ancestor of remote, count commits behind
+	// Count commits behind (remote has commits local doesn't)
 	if isRemoteAhead {
 		commits, err := repo.Log(&git.LogOptions{
 			From: remoteCommit.Hash,
@@ -1365,21 +1353,14 @@ func GetBranchDivergence(path, branchName, token string) (ahead, behind int, err
 
 		err = commits.ForEach(func(c *object.Commit) error {
 			if c.Hash == localCommit.Hash {
-				return fmt.Errorf("stop")
+				return fmt.Errorf("stop") // Found local commit, stop counting
 			}
 			behind++
 			return nil
 		})
-	}
-
-	// If neither is ancestor of the other, branches have truly diverged
-	// In this case, we'd need merge-base calculation which is complex
-	// For now, just indicate divergence by setting both to 1
-	if !isLocalAhead && !isRemoteAhead {
-		// Branches have diverged - try to estimate
-		// This is imperfect without proper merge-base
-		ahead = 1  // Indicate there are local changes
-		behind = 1 // Indicate there are remote changes
+		if err != nil && err.Error() != "stop" {
+			return 0, 0, err
+		}
 	}
 
 	return ahead, behind, nil
