@@ -18,10 +18,15 @@ var SetCmd = &cobra.Command{
 	Short: "Set a configuration value",
 	Long: `Set a configuration value by key path.
 	
+Keys can use either camelCase or snake_case - both will work:
+  - git.workingbranch or git.working_branch
+  - git.authorname or git.author_name
+	
 Examples:
   chtsht config set git.token ghp_xxxxx
   chtsht config set git.auto_branch true
-  chtsht config set git.author_name "John Doe"`,
+  chtsht config set git.author_name "John Doe"
+  chtsht config set git.workingbranch main`,
 	Args: cobra.ExactArgs(2),
 	RunE: runSet,
 }
@@ -49,14 +54,14 @@ func runSet(cmd *cobra.Command, args []string) error {
 
 	// Load existing config or create empty map
 	var configData map[string]interface{}
-	
+
 	if _, err := os.Stat(configFile); err == nil {
 		// File exists, load it
 		data, err := os.ReadFile(configFile)
 		if err != nil {
 			return fmt.Errorf("failed to read config file: %w", err)
 		}
-		
+
 		if err := yaml.Unmarshal(data, &configData); err != nil {
 			return fmt.Errorf("failed to parse config file: %w", err)
 		}
@@ -89,12 +94,12 @@ func runSet(cmd *cobra.Command, args []string) error {
 
 func setNestedValue(data map[string]interface{}, key, value string) error {
 	parts := strings.Split(key, ".")
-	
+
 	// Navigate to the parent map
 	current := data
 	for i := 0; i < len(parts)-1; i++ {
-		part := parts[i]
-		
+		part := normalizeKey(parts[i])
+
 		if next, ok := current[part]; ok {
 			// Key exists
 			if nextMap, ok := next.(map[string]interface{}); ok {
@@ -111,15 +116,46 @@ func setNestedValue(data map[string]interface{}, key, value string) error {
 	}
 
 	// Set the final value with type inference
-	finalKey := parts[len(parts)-1]
+	finalKey := normalizeKey(parts[len(parts)-1])
 	current[finalKey] = inferType(value)
 
 	return nil
 }
 
+// normalizeKey converts a key to snake_case to match koanf struct tags
+// Examples: workingbranch -> working_branch, authorname -> author_name
+func normalizeKey(key string) string {
+	// Common config key mappings (add more as needed)
+	keyMap := map[string]string{
+		"sheetspath":    "sheets_path",
+		"repourl":       "repo_url",
+		"clonepath":     "clone_path",
+		"autobranch":    "auto_branch",
+		"workingbranch": "working_branch",
+		"authorname":    "author_name",
+		"authoremail":   "author_email",
+	}
+
+	// Convert to lowercase first for case-insensitive matching
+	lowerKey := strings.ToLower(key)
+
+	// Check if we have a direct mapping
+	if normalized, ok := keyMap[lowerKey]; ok {
+		return normalized
+	}
+
+	// If the key already has underscores, return as-is
+	if strings.Contains(key, "_") {
+		return strings.ToLower(key)
+	}
+
+	// Return the key as-is (might already be correct)
+	return strings.ToLower(key)
+}
+
 func inferType(value string) interface{} {
 	// Try to infer the type from the string value
-	
+
 	// Boolean
 	if value == "true" {
 		return true
