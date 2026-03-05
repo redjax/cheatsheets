@@ -10,7 +10,6 @@ import (
 	"github.com/redjax/cheatsheets/internal/config"
 	"github.com/redjax/cheatsheets/internal/guards"
 	cheatsheetservice "github.com/redjax/cheatsheets/internal/services/cheatsheetService"
-	reposervices "github.com/redjax/cheatsheets/internal/services/repoServices"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +54,9 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	// Pre-flight checks - ensure repo exists and we're on working branch
+	// Pre-flight checks - ensure repo exists
 	guardCtx := guards.NewGuardContext(cfg)
-	if err := guards.CheckAll(guardCtx, guards.RepoCloned, guards.OnWorkingBranch); err != nil {
+	if err := guards.CheckAll(guardCtx, guards.RepoCloned); err != nil {
 		return err
 	}
 
@@ -68,37 +67,25 @@ func runDelete(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("git repository not found: %w\nRun 'chtsht repo clone' to clone the repository", err)
 	}
 
-	// Auto-switch to working branch if enabled and on main
-	if cfg.Git.AutoBranch {
-		currentBranch, err := reposervices.GetCurrentBranch(repoPath)
-		if err == nil && (currentBranch == "main" || currentBranch == "master") {
-			workingBranch := cfg.Git.WorkingBranch
-			if workingBranch == "" {
-				workingBranch = "working"
-			}
-			_, _ = reposervices.EnsureWorkingBranch(repoPath, workingBranch)
-		}
-	}
-
 	// If no name provided, show selector
 	if len(args) == 0 {
-		return deleteWithSelector(repoPath, typeFilter, force)
+		return deleteWithSelector(cfg, typeFilter, force)
 	}
 
 	name := args[0]
 
 	// If type is specified, delete directly
 	if typeFilter != "" {
-		return deleteCheatsheet(repoPath, typeFilter, name, force)
+		return deleteCheatsheet(cfg, typeFilter, name, force)
 	}
 
 	// Otherwise, search for the cheatsheet by name
-	return deleteCheatsheetByName(repoPath, name, force)
+	return deleteCheatsheetByName(cfg, name, force)
 }
 
 // deleteCheatsheet deletes a specific cheatsheet by type and name
-func deleteCheatsheet(repoPath, cheatsheetType, name string, skipConfirm bool) error {
-	filePath := cheatsheetservice.GetCheatsheetPath(repoPath, cheatsheetType, name)
+func deleteCheatsheet(cfg *config.Config, cheatsheetType, name string, skipConfirm bool) error {
+	filePath := cheatsheetservice.GetCheatsheetPath(cfg.Git.ClonePath, cheatsheetType, name)
 
 	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -114,7 +101,7 @@ func deleteCheatsheet(repoPath, cheatsheetType, name string, skipConfirm bool) e
 	}
 
 	// Delete the file
-	if err := cheatsheetservice.DeleteCheatsheet(repoPath, cheatsheetType, name); err != nil {
+	if err := cheatsheetservice.DeleteCheatsheet(cfg.Git.ClonePath, cheatsheetType, name); err != nil {
 		return err
 	}
 
@@ -123,8 +110,8 @@ func deleteCheatsheet(repoPath, cheatsheetType, name string, skipConfirm bool) e
 }
 
 // deleteCheatsheetByName finds and deletes a cheatsheet by name (searching all types)
-func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
-	availableTypes, err := cheatsheetservice.GetAvailableTypes(repoPath)
+func deleteCheatsheetByName(cfg *config.Config, name string, skipConfirm bool) error {
+	availableTypes, err := cheatsheetservice.GetAvailableTypes(cfg.Git.ClonePath)
 	if err != nil {
 		return fmt.Errorf("error getting available types: %w", err)
 	}
@@ -136,7 +123,7 @@ func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
 	}
 
 	for _, t := range availableTypes {
-		filePath := cheatsheetservice.GetCheatsheetPath(repoPath, t, name)
+		filePath := cheatsheetservice.GetCheatsheetPath(cfg.Git.ClonePath, t, name)
 		if _, err := os.Stat(filePath); err == nil {
 			foundPaths = append(foundPaths, struct {
 				Type string
@@ -151,7 +138,7 @@ func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
 
 	// If only one match, delete it directly
 	if len(foundPaths) == 1 {
-		return deleteCheatsheet(repoPath, foundPaths[0].Type, name, skipConfirm)
+		return deleteCheatsheet(cfg, foundPaths[0].Type, name, skipConfirm)
 	}
 
 	// Multiple matches - show selector
@@ -194,7 +181,7 @@ func deleteCheatsheetByName(repoPath, name string, skipConfirm bool) error {
 	selected := options[idx]
 	fmt.Println() // Add blank line for spacing
 
-	return deleteCheatsheet(repoPath, selected.Type, name, skipConfirm)
+	return deleteCheatsheet(cfg, selected.Type, name, skipConfirm)
 }
 
 // confirmDeletion prompts the user to confirm deletion
@@ -207,8 +194,8 @@ func confirmDeletion(cheatsheetType, name string) bool {
 }
 
 // deleteWithSelector shows an interactive selector for choosing a cheatsheet to delete
-func deleteWithSelector(repoPath, typeFilter string, skipConfirm bool) error {
-	availableTypes, err := cheatsheetservice.GetAvailableTypes(repoPath)
+func deleteWithSelector(cfg *config.Config, typeFilter string, skipConfirm bool) error {
+	availableTypes, err := cheatsheetservice.GetAvailableTypes(cfg.Git.ClonePath)
 	if err != nil {
 		return fmt.Errorf("error getting available types: %w", err)
 	}
@@ -239,7 +226,7 @@ func deleteWithSelector(repoPath, typeFilter string, skipConfirm bool) error {
 
 	var options []selectOption
 	for _, t := range typesToList {
-		cheatsheets, err := cheatsheetservice.GetCheatsheetsByType(repoPath, t)
+		cheatsheets, err := cheatsheetservice.GetCheatsheetsByType(cfg.Git.ClonePath, t)
 		if err != nil {
 			return fmt.Errorf("error getting cheatsheets for type %s: %w", t, err)
 		}
@@ -283,5 +270,5 @@ func deleteWithSelector(repoPath, typeFilter string, skipConfirm bool) error {
 	selected := options[idx]
 	fmt.Println() // Add blank line for spacing
 
-	return deleteCheatsheet(repoPath, selected.Type, selected.Name, skipConfirm)
+	return deleteCheatsheet(cfg, selected.Type, selected.Name, skipConfirm)
 }

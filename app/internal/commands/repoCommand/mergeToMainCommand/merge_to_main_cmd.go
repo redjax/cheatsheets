@@ -11,16 +11,19 @@ import (
 
 var MergeToMainCmd = &cobra.Command{
 	Use:   "merge-to-main",
-	Short: "Merge working branch into main",
-	Long: `Merge your working branch into the main branch and push it to remote.
-	
+	Short: "Merge current branch into main",
+	Long: `Merge your current branch into the main branch and push it to remote.
+
+NOTE: This command is only useful if you're working on a separate branch.
+If you're working directly on main, you don't need this command.
+
 This command will:
   - Ensure you have a clean working tree
   - Checkout the main branch
   - Pull the latest changes
-  - Merge your working branch into main
+  - Merge your current branch into main
   - Push main to remote
-  - Switch back to your working branch`,
+  - Switch back to your original branch`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// Get the config file path from the persistent flag
 		configFile, err := cmd.Flags().GetString("config-file")
