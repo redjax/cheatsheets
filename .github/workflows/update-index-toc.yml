@@ -25,6 +25,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           fetch-depth: 2  # Need at least 2 commits to compare
           
       - name: Set up Python
@@ -112,7 +113,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add INDEX.md cheatsheets/
           git commit -m "chore: auto-update index and TOC [skip ci]"
-          git push
+          git push origin HEAD:${{ github.head_ref || github.ref_name }}
           
       - name: Skip - No changes detected
         if: steps.check_changes.outputs.new_files == 'false' && steps.check_changes.outputs.modified_files == 'false'
