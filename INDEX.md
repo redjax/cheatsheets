@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-03-05"
+last_updated: "2026-03-16"
 ---
 
 # Cheatsheets Index
@@ -28,6 +28,7 @@ last_updated: "2026-03-05"
 | [cURL <!-- omit in toc -->](cheatsheets/command/curl.md) | cURL is a tool for transferring data to or from a server using URLs. It is a terminal-based HTTP client with powerful capabilities. | command, command, curl, http |
 | [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
 | [Scoop <!-- omit in toc -->](cheatsheets/command/scoop.md) | Scoop is a userland package manager for Windows, similar to Homebrew. | command, package_management windows |
+| [Windows Subsystem for Linux (WSL) <!-- omit in toc -->](cheatsheets/command/wsl.md) | WSL is the Windows CLI package manager, like apt on Ubuntu or DNF on Fedora. | command, windows, wsl |
 | [Winget <!-- omit in toc -->](cheatsheets/command/winget.md) | CLI package manager for Windows. | command, wsl, windows, package_management |
 
 ## language

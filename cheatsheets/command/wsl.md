@@ -4,6 +4,29 @@ last_updated: "{{last_update}}"
 tags: ["command", "windows", "wsl"]
 last_updated: "2026-03-16"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Commands Cheatsheet](#commands-cheatsheet)
+  - [List WSL distributions available for install](#list-wsl-distributions-available-for-install)
+  - [Add a WSL distribution](#add-a-wsl-distribution)
+  - [Remove a WSL distribution](#remove-a-wsl-distribution)
+  - [Shutdown/Stop a distribution](#shutdownstop-a-distribution)
+    - [Shutdown all distributions](#shutdown-all-distributions)
+  - [Backup & Restore](#backup-restore)
+    - [Backup WSL distro](#backup-wsl-distro)
+    - [Restore WSL distro from backup](#restore-wsl-distro-from-backup)
+  - [Enable systemd in WSL](#enable-systemd-in-wsl)
+  - [Enable FUSE fs in WSL](#enable-fuse-fs-in-wsl)
+  - [Use host's git credential manager](#use-hosts-git-credential-manager)
+  - [Use git in WSL without Windows GCM](#use-git-in-wsl-without-windows-gcm)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+  - [Fix signature mismatches in Azure libraries](#fix-signature-mismatches-in-azure-libraries)
+  - [Fix ping socket operation not permitted](#fix-ping-socket-operation-not-permitted)
+  - [Kill frozen or suspended WSL](#kill-frozen-or-suspended-wsl)
+- [Links](#links)
 
 # Windows Subsystem for Linux (WSL) <!-- omit in toc -->
 
@@ -24,7 +47,6 @@ WSL is the Windows CLI package manager, like apt on Ubuntu or DNF on Fedora.
 | `wsl --export <distro-name> c:\Path\To\distroname-backup.tar` | Create a backup of a WSL distribution. |
 | `wsl --import <distro-name> c:\Path\To\Install\<distro-name> c:\Path\To\distroname-backup.tar` | Restore a WSL backup. |
 | `wsl --shutdown` | Shutdown WSL service host, killing all running VMs. |
-
 
 ### List WSL distributions available for install
 
