@@ -1,6 +1,6 @@
 ---
 description: "Version control system."
-last_updated: "2026-02-02"
+last_updated: "2026-03-26"
 tags: ["git", "command", "cli"]
 ---
 
@@ -14,6 +14,14 @@ tags: ["git", "command", "cli"]
     - [Bash script to rewrite history](#bash-script-to-rewrite-history)
 
 ## Usage
+
+## Push empty commit
+
+You can create and push an empty commit to trigger CI/CD pipelines using:
+
+```shell
+git commit --allow-empty -m "Trigger pipeline" ; git push
+```
 
 ## Troubleshooting
 
