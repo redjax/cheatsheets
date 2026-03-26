@@ -99,6 +99,7 @@ def parse_headings(lines: list[str]) -> list[tuple[int, str, str]]:
     """
     headings: list[tuple[int, str, str]] = []
     in_front_matter = False
+    in_code_fence = False
 
     for i, line in enumerate(lines):
         ## Skip front matter
@@ -110,6 +111,16 @@ def parse_headings(lines: list[str]) -> list[tuple[int, str, str]]:
             ## Find end of front matter
             if FRONT_MATTER_END.match(line):
                 in_front_matter = False
+            continue
+
+        ## Track code fences (triple backticks or tildes)
+        stripped = line.strip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_code_fence = not in_code_fence
+            continue
+
+        ## Skip lines inside code fences
+        if in_code_fence:
             continue
 
         ## Match headings with regex
