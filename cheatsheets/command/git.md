@@ -9,6 +9,7 @@ tags: ["git", "command", "cli"]
 ## Table of Contents <!-- omit in toc -->
 
 - [Usage](#usage)
+- [Push empty commit](#push-empty-commit)
 - [Troubleshooting](#troubleshooting)
   - [Rewrite Git commit history](#rewrite-git-commit-history)
     - [Bash script to rewrite history](#bash-script-to-rewrite-history)
