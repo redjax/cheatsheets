@@ -13,7 +13,6 @@ last_updated: "2026-03-05"
   - [PATCH](#patch)
   - [DELETE](#delete)
   - [Save request as .json for inspection](#save-request-as-json-for-inspection)
-- [File will be saved to ./request.json](#file-will-be-saved-to-requestjson)
   - [Save response to a .json file](#save-response-to-a-json-file)
 - [Troubleshooting](#troubleshooting)
 - [Links](#links)
