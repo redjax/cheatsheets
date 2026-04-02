@@ -1,6 +1,6 @@
 ---
 description: "Terminal-based IDE, next-gen Vi(m)."
-last_updated: "2026-02-25"
+last_updated: "2026-04-02"
 tags: ["neovim", "app", "cli", "tui"]
 ---
 
@@ -31,6 +31,19 @@ Launching Neovim with CLI args controls how the program opens. Here are some use
   ```shell
   nvim --headless "+Lazy! sync" +qa
   ```
+
+### Navigation
+
+When editing a file, these less obvious keybinds are useful for navigating around the file/lines:
+
+| Keybind | Description |
+| ------- | ----------- |
+| `CTRL+e` | scroll page down without scrolling cursor |
+| `CTRL+y` | scroll page up without scrolling cursor |
+| `%` | Bounce between open/close parentheses |
+| `CTRL+d` | Page down (scroll cursor) |
+| `CTRL+u` | Page down (scroll cursor) |
+| `SHIFT+v` | Highlight full lines |
 
 ### Search
 

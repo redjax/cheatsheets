@@ -1,6 +1,6 @@
 ---
 description: "Version control system."
-last_updated: "2026-03-26"
+last_updated: "2026-03-27"
 tags: ["git", "command", "cli"]
 ---
 
