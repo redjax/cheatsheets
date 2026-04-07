@@ -30,7 +30,7 @@ for arg in "$@"; do
 done
 
 ## Check dependencies
-for cmd in curl unzip; do
+for cmd in curl unzip jq; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "[ERROR] '$cmd' is required but not installed."
     exit 1
@@ -75,8 +75,10 @@ esac
 
 ## Get latest release version from GitHub API
 echo "Fetching latest release info"
-RELEASE_TAG=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
-  | grep -Po '"tag_name": "\K.*?(?=")')
+RELEASE_TAG=$(
+  curl -fsSL "https://api.github.com/repos/$REPO/releases?per_page=100" \
+  | jq -r '[.[] | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name'
+)
 
 if [[ -z "$RELEASE_TAG" ]]; then
   echo "[ERROR] Could not determine latest release version."
@@ -109,7 +111,7 @@ echo "Extracting"
 unzip -q "$ARCHIVE" -d "$TMPDIR"
 
 ## Verify the binary exists in the extracted files
-BINARY_PATH="$TMPDIR/$BIN_NAME"
+BINARY_PATH=$(find "$TMPDIR" -type f -name "$BIN_NAME" | head -n 1)
 if [[ ! -f "$BINARY_PATH" ]]; then
   echo "[ERROR] Binary '$BIN_NAME' not found in archive."
   echo "Archive contents:"
