@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-04-02"
+last_updated: "2026-04-07"
 ---
 
 # Cheatsheets Index
@@ -19,6 +19,7 @@ last_updated: "2026-04-02"
 | Name | Description | Tags |
 | --- | --- | --- |
 | [Helix Editor <!-- omit in toc -->](cheatsheets/app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
+| [LNav - The Logfile Navigator <!-- omit in toc -->](cheatsheets/app/lnav.md) | [lnav](https://lnav.org/) is a logfile navigator/TUI. It is extremely versatile at parsing logs from different sources/filetypes. | app, cli, tui, logging, linux |
 | [Neovim <!-- omit in toc -->](cheatsheets/app/neovim.md) | Terminal-based IDE, next-gen Vi(m). | neovim, app, cli, tui |
 
 ## command

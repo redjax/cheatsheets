@@ -3,6 +3,14 @@ description: "[lnav](https://lnav.org/) is a logfile navigator/TUI. It is extrem
 last_updated: "2026-04-07"
 tags: ["app", "cli", "tui", "logging", "linux"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Keybinds Cheatsheet](#keybinds-cheatsheet)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # LNav - The Logfile Navigator <!-- omit in toc -->
 
