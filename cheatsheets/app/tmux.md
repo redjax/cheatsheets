@@ -7,6 +7,8 @@ tags: ["app", "cli", "tui", "linux"]
 
 - [About](#about)
 - [Usage](#usage)
+  - [Keybinds Cheatsheet](#keybinds-cheatsheet)
+  - [Commands Cheatsheet](#commands-cheatsheet)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
 - [Links](#links)
