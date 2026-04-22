@@ -45,6 +45,8 @@ When editing a file, these less obvious keybinds are useful for navigating aroun
 | `CTRL+d` | Page down (scroll cursor) |
 | `CTRL+u` | Page down (scroll cursor) |
 | `SHIFT+v` | Highlight full lines |
+| `ma` | Drop a mark in the local file, can be any letter i.e. `ma`, `mb`, `mq`. Return to the mark by pressing the letter, i.e. `a`. |
+| `mA` | Drop a global mark, can be any letter i.e. `mA`, `mB`, `mQ`. Return to the mark from any other file/buffer, even if the file is closed, by pressing the letter, i.e. `A`. |
 
 ### Search
 
