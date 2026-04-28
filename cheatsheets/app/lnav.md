@@ -1,6 +1,6 @@
 ---
 description: "[lnav](https://lnav.org/) is a logfile navigator/TUI. It is extremely versatile at parsing logs from different sources/filetypes."
-last_updated: "2026-04-07"
+last_updated: "2026-04-28"
 tags: ["app", "cli", "tui", "logging", "linux"]
 ---
 ## Table of Contents <!-- omit in toc -->
@@ -52,6 +52,14 @@ tags: ["app", "cli", "tui", "logging", "linux"]
 | `:`      | Open the command prompt                                              |
 | `/`      | Start a regex/text search                                            |
 | `;`      | Enter SQL query mode                                                 |
+
+### Commands Cheatsheet
+
+Run these inside the `lnav` TUI.
+
+| Command | Description |
+| ------- | ----------- |
+| `:min-log-level warning` | Set the minimum log level filter to `warning`. Other options include `information`, `error`, `critical`. |
 | `:goto 2026-04-07T13:00:00`      | Jump to a specific timestamp.                                              |
 | `:goto 12345`                    | Jump to a line number.                                                     |
 | `:pipe-to grep ERROR`            | Pipe bookmarked lines to a shell command and open the result in lnav lnav. |
