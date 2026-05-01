@@ -3,6 +3,12 @@ description: "Rsync is a fast remote and local file-copying tool."
 last_updated: "{{last_update}}"
 tags: ["command", ]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Rsync <!-- omit in toc -->
 
