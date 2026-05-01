@@ -12,6 +12,12 @@ tags: ["linux", "system", "os"]
   - [Variables](#variables)
 - [Args](#args)
   - [Example: Parse CLI args](#example-parse-cli-args)
+- [Bash Tips & Tricks](#bash-tips-tricks)
+  - [Get command that launched a PID](#get-command-that-launched-a-pid)
+  - [Only run function if script is called directly](#only-run-function-if-script-is-called-directly)
+  - [Uppercase a variable's text value](#uppercase-a-variables-text-value)
+- [Traps](#traps)
+  - [Return to PWD on script exit](#return-to-pwd-on-script-exit)
 
 ## Paths
 
