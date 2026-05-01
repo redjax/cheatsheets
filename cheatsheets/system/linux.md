@@ -8,6 +8,11 @@ tags: ["linux", "system", "os"]
 
 ## Table of Contents <!-- omit in toc -->
 
+- [Paths](#paths)
+  - [Variables](#variables)
+- [Args](#args)
+  - [Example: Parse CLI args](#example-parse-cli-args)
+
 ## Paths
 
 ### Variables
