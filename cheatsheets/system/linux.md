@@ -23,10 +23,10 @@ tags: ["linux", "system", "os"]
 
 ### Variables
 
-| Variable                                                  | Description                             |
-| --------------------------------------------------------- | --------------------------------------- |
-| `THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)" | Get parent directory of current script. |
-| `REL_PATH=$(realpath -m "${THIS_DIR}/../..")              | Get absolute path from a relative path. |
+| Variable                                                   | Description                             |
+| ---------------------------------------------------------- | --------------------------------------- |
+| `THIS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"` | Get parent directory of current script. |
+| `REL_PATH=$(realpath -m "${THIS_DIR}/../..")`              | Get absolute path from a relative path. |
 
 ## Args
 
