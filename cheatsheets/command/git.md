@@ -1,6 +1,6 @@
 ---
 description: "Version control system."
-last_updated: "2026-03-27"
+last_updated: "2026-05-03"
 tags: ["git", "command", "cli"]
 ---
 
@@ -9,12 +9,52 @@ tags: ["git", "command", "cli"]
 ## Table of Contents <!-- omit in toc -->
 
 - [Usage](#usage)
+- [Branches](#branches)
+  - [Filter git branch command](#filter-git-branch-command)
+    - [Show branches that are fully merged](#show-branches-that-are-fully-merged)
+    - [Show only unmerged branches](#show-only-unmerged-branches)
+    - [Compare against remote](#compare-against-remote)
 - [Push empty commit](#push-empty-commit)
 - [Troubleshooting](#troubleshooting)
   - [Rewrite Git commit history](#rewrite-git-commit-history)
     - [Bash script to rewrite history](#bash-script-to-rewrite-history)
 
 ## Usage
+
+## Branches
+
+### Filter git branch command
+
+Running `git branch` or `git branch -a` prints all of the branches in your repository. Sometimes you may want to filter the list to see branches that only exist locally, or have been deleted from the remote.
+
+> [!NOTE]
+> These command operates on the branch you currently have checked out.
+> To see branches that have been merged into `main`, make sure to `git switch main` first.
+
+#### Show branches that are fully merged
+
+```shell
+git branch --merged
+```
+
+#### Show only unmerged branches
+
+```shell
+git branch --no-merged
+```
+
+#### Compare against remote
+
+  ```shell
+  git fetch --prune && git branch -vv
+  ```
+
+Example output:
+
+```shell
+feature/login   a1b2c3d [origin/feature/login: gone] WIP login
+old-feature     d4e5f6g [origin/old-feature: gone] fix
+```
 
 ## Push empty commit
 
