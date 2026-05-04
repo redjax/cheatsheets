@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-02"
+last_updated: "2026-05-04"
 ---
 
 # Cheatsheets Index
