@@ -68,10 +68,11 @@ tags: ["app", "cli", "tui", "linux"]
 ### Commands Cheatsheet
 
 | Command | Description |
+| ------- | ----------- |
 | `tmux ls` | List sessions |
 | `tmux kill-server` | Kill all sessions |
 | `tmux a -t <index-or-name>` | Attach to a session by index or name |
-| `tmux move-window -s <window-number> -t <new-position>` | Move/re-order windows in a session. |
+| `tmux move-window -s <window-number> -t <new-position>` | Move/re-order windows in a session. If you are already in the window you want to move, you can just use `tmux move-window -t <position>`. Use `-r` to renumber windows after move (or use `set-option -g renumber-windows on` in your tmux config). |
 | `tmux swap-window -s <first-window-index> -t <second-window-index>` | Swap 2 windows by index. |
 | `tmux move-window -r -s <window-number> -t <new-position>` | Move windows and swap indexes in 1 step. |
 
