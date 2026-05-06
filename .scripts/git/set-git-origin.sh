@@ -45,7 +45,7 @@ function usage() {
 while [[ $# -gt 0 ]]; do
   case $1 in
   --ssh-url)
-    if [[ -z "$2" ]]; then
+    if [[ -z "${2:-}" ]]; then
       echo "[ERROR] --ssh-url provided, but no URL given."
 
       usage
@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
     shift 2
     ;;
   --https-url)
-    if [[ -z "$2" ]]; then
+    if [[ -z "${2:-}" ]]; then
       echo "[ERROR] --https-url provided, but no URL given."
 
       usage
@@ -67,7 +67,7 @@ while [[ $# -gt 0 ]]; do
     shift 2
     ;;
   -t | --remote-type)
-    if [[ -z "$2" ]]; then
+    if [[ -z "${2:-}" ]]; then
       echo "[ERROR] --remote-type provided, but no 'https'/'ssh' value given."
 
       usage
@@ -75,15 +75,19 @@ while [[ $# -gt 0 ]]; do
     fi
 
     ## Ensure value is https or ssh
-    case "$2" in
-    [Hh][Tt][Pp][Ss])
+    value="$(echo "$2" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')"
+
+    case "$value" in
+    https)
       REMOTE_TYPE="https"
       ;;
-    [Ss][Ss][Hh])
+    ssh)
       REMOTE_TYPE="ssh"
       ;;
     *)
       echo "[ERROR] Invalid --remote-type: $2. Valid values are: https, ssh"
+      usage
+      exit 1
       ;;
     esac
 
@@ -117,7 +121,7 @@ fi
 
 ## Add new origin
 echo "Setting dotfiles remote repository URL to: (${REMOTE_TYPE}) ${REMOTE_URL}"
-if ! git remote add origin $REMOTE_URL; then
+if ! git remote add origin "$REMOTE_URL"; then
   echo "[ERROR] Failed to add new origin."
   exit 1
 fi
@@ -138,7 +142,6 @@ for branch in $(git for-each-ref --format='%(refname:short)' refs/heads/); do
   else
     echo "[INFO] Skipping '$branch' (not on remote)"
   fi
-
 done
 
 echo ""
