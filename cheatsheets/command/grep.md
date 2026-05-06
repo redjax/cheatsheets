@@ -37,7 +37,7 @@ grep [OPTIONS] "search_string" [path/to/search]
 | `grep -R [string] /path/to/search` | Follow symlinks |
 | `grep -v [string]` | Return all lines which DON'T match a pattern |
 | `grep -e "^regex-string"` | Use regex |
-| `grep -E 're(gex|GEX)' string` | Extended regex |
+| `grep -E 're(gex\|GEX)' string` | Extended regex |
 | `grep -c [string]` | Count number of matches |
 | `grep -l [string]` | Print the name of the file(s) of matches |
 | `grep -L [string]` | Show non-matching filenames |
