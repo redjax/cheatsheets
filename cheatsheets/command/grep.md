@@ -4,6 +4,13 @@ last_updated: "{{last_update}}"
 tags: ["command", "cli"]
 last_updated: "2026-05-06"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Grep <!-- omit in toc -->
 

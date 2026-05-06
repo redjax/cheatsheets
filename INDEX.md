@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-05"
+last_updated: "2026-05-06"
 ---
 
 # Cheatsheets Index
@@ -29,6 +29,7 @@ last_updated: "2026-05-05"
 | --- | --- | --- |
 | [cURL <!-- omit in toc -->](cheatsheets/command/curl.md) | cURL is a tool for transferring data to or from a server using URLs. It is a terminal-based HTTP client with powerful capabilities. | command, command, curl, http |
 | [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
+| [Grep <!-- omit in toc -->](cheatsheets/command/grep.md) | Grep is used to find text in a file or files within a directory path. | command, cli |
 | [Rsync <!-- omit in toc -->](cheatsheets/command/rsync.md) | Rsync is a fast remote and local file-copying tool. | command |
 | [Scoop <!-- omit in toc -->](cheatsheets/command/scoop.md) | Scoop is a userland package manager for Windows, similar to Homebrew. | command, package_management windows |
 | [Windows Subsystem for Linux (WSL) <!-- omit in toc -->](cheatsheets/command/wsl.md) | WSL is the Windows CLI package manager, like apt on Ubuntu or DNF on Fedora. | command, windows, wsl |
