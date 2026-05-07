@@ -4,6 +4,23 @@ last_updated: "{{last_update}}"
 tags: ["command", "azure", "cloud"]
 last_updated: "2026-05-07"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Login](#login)
+  - [User info](#user-info)
+  - [Show active subscription](#show-active-subscription)
+  - [Set/change subscription](#setchange-subscription)
+  - [ACR](#acr)
+  - [Resources](#resources)
+    - [List](#list)
+    - [Show](#show)
+  - [Resource Groups](#resource-groups)
+  - [Resource Graph](#resource-graph)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Azure CLI <!-- omit in toc -->
 

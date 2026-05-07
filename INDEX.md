@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-06"
+last_updated: "2026-05-07"
 ---
 
 # Cheatsheets Index
@@ -27,6 +27,7 @@ last_updated: "2026-05-06"
 
 | Name | Description | Tags |
 | --- | --- | --- |
+| [Azure CLI <!-- omit in toc -->](cheatsheets/command/az.md) | The [Azure CLI](https://github.com/Azure/azure-cli) is a CLI tool for interacting with Microsoft Azure. | command, azure, cloud |
 | [cURL <!-- omit in toc -->](cheatsheets/command/curl.md) | cURL is a tool for transferring data to or from a server using URLs. It is a terminal-based HTTP client with powerful capabilities. | command, command, curl, http |
 | [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
 | [Grep <!-- omit in toc -->](cheatsheets/command/grep.md) | Grep is used to find text in a file or files within a directory path. | command, cli |
