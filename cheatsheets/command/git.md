@@ -95,6 +95,54 @@ git log [--oneline] [--decorate] [--color=always]
 
 There are many other options for the `git log` command, detailed below in specific examples.
 
+### Git Log Cheatsheet
+
+| Use Case | Command |
+| --- | --- |
+| Basic log | `git log` |
+| Compact one-line log | `git log --oneline` |
+| Show branch/tag refs | `git log --decorate` |
+| ASCII graph view | `git log --graph --oneline --decorate` |
+| Preserve colors through pager | `git log --oneline --decorate --color=always \| less -R` |
+| Show shortened hashes | `git log --abbrev-commit` |
+| Show changed files stats | `git log --stat` |
+| Show full patches/diffs | `git log -p` |
+| Show stats + patches | `git log --stat -p` |
+| Show last 5 commits | `git log -5` |
+| Filter commits after date | `git log --after="2025-01-01"` |
+| Filter commits before date | `git log --before="2025-01-31"` |
+| Filter commits between dates | `git log --after="2025-01-01" --before="2025-01-31"` |
+| Filter by author | `git log --author="John"` |
+| Filter by commit message | `git log --grep="fix"` |
+| Search for added/removed text | `git log -S"TODO"` |
+| Show commits affecting file | `git log -- src/main.c` |
+| Show commits in branch range | `git log main..feature/login` |
+| Hide merge commits | `git log --no-merges` |
+| Show only merge commits | `git log --merges` |
+| Group commits by author | `git shortlog` |
+| Sort authors by commit count | `git shortlog -n` |
+| Pretty oneline format | `git log --pretty=oneline` |
+| Pretty short format | `git log --pretty=short` |
+| Pretty medium format | `git log --pretty=medium` |
+| Pretty full format | `git log --pretty=full` |
+| Pretty fuller format | `git log --pretty=fuller` |
+| Pretty email format | `git log --pretty=email` |
+| Pretty raw format | `git log --pretty=raw` |
+| Custom pretty format | `git log --pretty=format:"%h - %an, %ar : %s"` |
+| Compact colored format | `git log --pretty=format:"%C(yellow)%h%C(reset) %C(green)%ar%C(reset) %C(blue)%an%C(reset) %s"` |
+| Multi-line pretty format | `git log --pretty=format:"Commit: %h%nAuthor: %an%nDate: %ar%n%n%s%n"` |
+| Graph + custom pretty format | `git log --graph --pretty=format:"%C(yellow)%h%C(reset) - %C(green)(%cr)%C(reset) %s %C(blue)<%an>%C(reset)" --abbrev-commit` |
+| Show refs without patches | `git log --name-only` |
+| Show refs with file status | `git log --name-status` |
+| Show commits from all branches | `git log --all --decorate --oneline --graph` |
+| Show commit timestamps in ISO format | `git log --date=iso` |
+| Show relative timestamps | `git log --date=relative` |
+| Follow file renames | `git log --follow -- path/to/file` |
+| Show commits by committer | `git log --committer="John"` |
+| Limit to one branch only | `git log --first-parent` |
+| Show commits touching a directory | `git log -- src/components/` |
+| Show one commit per author summary | `git shortlog -sne` |
+
 ### Pipe commit history into less
 
 ```shell
