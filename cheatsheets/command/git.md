@@ -1,6 +1,6 @@
 ---
 description: "Version control system."
-last_updated: "2026-05-03"
+last_updated: "2026-05-08"
 tags: ["git", "command", "cli"]
 ---
 
@@ -15,6 +15,23 @@ tags: ["git", "command", "cli"]
     - [Show only unmerged branches](#show-only-unmerged-branches)
     - [Compare against remote](#compare-against-remote)
 - [Push empty commit](#push-empty-commit)
+- [Git Log](#git-log)
+  - [Pipe commit history into less](#pipe-commit-history-into-less)
+  - [Show log with ASCII graph](#show-log-with-ascii-graph)
+  - [Show shortened commit hashes](#show-shortened-commit-hashes)
+  - [Show change count statistics](#show-change-count-statistics)
+  - [Show code diffs in log](#show-code-diffs-in-log)
+  - [Filter commits](#filter-commits)
+  - [Search history](#search-history)
+  - [Commit ranges](#commit-ranges)
+  - [Merge commit filtering](#merge-commit-filtering)
+  - [Group commits by author](#group-commits-by-author)
+  - [Pretty formatting](#pretty-formatting)
+    - [Pretty log formatting tokens](#pretty-log-formatting-tokens)
+    - [Pretty log formatting examples](#pretty-log-formatting-examples)
+- [Git config](#git-config)
+  - [Set preserve colors in less](#set-preserve-colors-in-less)
+- [Git aliases](#git-aliases)
 - [Troubleshooting](#troubleshooting)
   - [Rewrite Git commit history](#rewrite-git-commit-history)
     - [Bash script to rewrite history](#bash-script-to-rewrite-history)
@@ -63,6 +80,355 @@ You can create and push an empty commit to trigger CI/CD pipelines using:
 ```shell
 git commit --allow-empty -m "Trigger pipeline" ; git push
 ```
+
+## Git Log
+
+*[Git log documentation](https://git-scm.com/docs/git-log)*
+
+Use the `git log` command to show/explore the repository's history.
+
+Syntax:
+
+```shell
+git log [--oneline] [--decorate] [--color=always]
+```
+
+There are many other options for the `git log` command, detailed below in specific examples.
+
+### Pipe commit history into less
+
+```shell
+git log --oneline --decorate --color=always | less -R
+```
+
+Flags:
+
+- `--oneline`: Compact one-line output
+- `--decorate`: Show branch/tag references
+- `--color=always`: Force color output through pipes
+- `less -R`: Preserve ANSI colors in pager
+
+### Show log with ASCII graph
+
+```shell
+git log --graph --oneline --decorate --color=always
+```
+
+This will show commits in an ASCII "graph" like:
+
+```shell
+* 8f3c1a2 (HEAD -> main) Add README updates
+* 7b2d9e1 Fix parsing bug
+|\
+| * a19cd34 Add feature branch work
+|/
+* 3f29aa0 Initial commit
+```
+
+### Show shortened commit hashes
+
+```shell
+git log --abbrev-commit
+```
+
+Shows a shortened commit hash, i.e. `commit 8f3c1a2` instead of `commit 8f3c1a2f15d6f61f0db95f2d8f8f7f0c79d1abc`.
+
+### Show change count statistics
+
+```shell
+git log --stat
+```
+
+Shows an overview of changes with `+` and `-`, i.e.:
+
+```shell
+README.md | 12 +++++++++---
+main.c    |  4 ++--
+```
+
+### Show code diffs in log
+
+```shell
+git log [-p/--patch]
+```
+
+Show full diff with stats:
+
+```shell
+git log --stat -p --color=always | less -R
+```
+
+### Filter commits
+
+Show last N commits:
+
+```shell
+git log -n 3
+```
+
+You can also omit the `-n` and just use `-#`, for example:
+
+```shell
+git log -3
+```
+
+- Filter by date:
+  - Commits after a specific date:
+  
+    ```shell
+    git log --after="2014-07-01"
+    ```
+  - Relative dates:
+  
+    ```shell
+    git log --after="yesterday"
+    git log --after="2 weeks ago"
+    ```
+  - Between 2 dates:
+
+    ```shell
+    git log --after="2014-07-01" --before="2014-07-04"
+    ```
+  - Commits up to a specific date:
+
+    ```shell
+    git log --until="2024-07-04"
+    ```
+- Filter by author:
+  - Single author by name/email:
+    
+    ```shell
+    git log --author="John"
+    git log --author="john@example.com"
+    ```
+  - Multiple authors:
+
+    ```shell
+    git log --author="John\|Mary"
+    ```
+
+### Search history
+
+Search by commit message:
+
+```shell
+git log --grep="text-to-search"
+```
+
+Search for changes to specific files:
+
+```shell
+git log -- filename.ext subdir/filename2.ext
+```
+
+Search for when text was added/removed:
+
+```shell
+git log -S"Hello, World!"
+```
+
+### Commit ranges
+
+Show commits in a range. The general syntax is:
+
+```shell
+git log <since>..<until>
+```
+
+Show commits between 2 branches:
+
+```shell
+git log main..feat/branch-name
+```
+
+### Merge commit filtering
+
+Hide merge commits:
+
+```shell
+git log --no-merges
+```
+
+Show *only* merge commits:
+
+```shell
+git log --merges
+```
+
+### Group commits by author
+
+Show commits grouped by author with:
+
+```shell
+git shortlog
+```
+
+Sort authors by commit count:
+
+```shell
+git shortlog -n
+```
+
+### Pretty formatting
+
+Git supports multiple display formats, which you can customize with the `--pretty` flag.
+
+- Show each commit on a single line
+
+  ```shell
+  git log --pretty=oneline
+  ```
+- Include commit hash, author, commit title:
+
+  ```shell
+  git log --pretty=short
+  ```
+- Include commit hash, author, date, full commit message
+
+  ```shell
+  git log --pretty=medium
+  ```
+- Include commit hash, full author (name + email), date, full commit message:
+
+  ```shell
+  git log --pretty=full
+  ```
+- Include commit hash, full author (name + email), date (author and commit date included), and full metadata
+
+  ```shell
+  git log --pretty=fuller
+  ```
+- Format commits like email patches:
+
+  ```shell
+  git log --pretty=email
+  ```
+- Show complete internal commit object data:
+
+  ```shell
+  git log --pretty=raw
+  ```
+- Customize pretty formatting (see [Pretty log formatting tokens section]() for more):
+
+  ```shell
+  git log --pretty=format:"%h - %an, %ar : %s"
+  ```
+
+  - Example output:
+
+    ```shell
+    8f3c1a2 - John Smith, 2 days ago : Fix parsing bug
+    ```
+
+#### Pretty log formatting tokens
+
+These tables are cheatsheets for the `git log --pretty=format:"..."` functionality.
+
+**Commit Information**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%H` | Full commit hash |
+| `%h` | Abbreviated commit hash |
+| `%T` | Full tree hash |
+| `%t` | Abbreviated tree hash |
+| `%P` | Parent hashes |
+| `%p`| Abbreviated parent hashes |
+
+**Author Information**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%an` | Author name |
+| `%ae` | Author email |
+| `%ad` | Author date |
+| `%ar` | Relative author date |
+| `%ai` | ISO-8601 author date |
+
+**Committer Information**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%cn` | Committer name |
+| `%ce` | Committer email |
+| `%cd` | Committer date |
+| `%cr` | Relative committer date |
+
+**Commit Message Information**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%s` | Subject |
+| `%f` | Sanitized subject |
+| `%b` | Body |
+| `%B` | Raw body + subject |
+
+**Reference Information**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%d` | Ref names |
+| `%D` | Ref names without parentheses |
+
+**Formatting/Color Tokens**
+
+| Token | Meaning |
+| ----- | ------- |
+| `%n` | Newline |
+| `%%` | Literal `%` |
+| `%C(red)` | Red text |
+| `%C(green)` | Green text |
+| `%C(yellow)` | Yellow text |
+| `%C(reset)` | Reset color |
+
+#### Pretty log formatting examples
+
+- Compact colored log:
+
+  ```shell
+  git log --pretty=format:"%C(yellow)%h%C(reset) %C(green)%ar%C(reset) %C(blue)%an%C(reset) %s"
+  ```
+  - Example:
+    
+    ```shell
+    8f3c1a2 2 days ago John Smith Fix parsing bug
+    ```
+- Multi-line format
+
+  ```shell
+  git log --pretty=format:"Commit: %h%nAuthor: %an%nDate: %ar%n%n%s%n"
+  ```
+- Graph + pretty format
+  
+  ```shell
+  git log --graph \
+  --pretty=format:"%C(yellow)%h%C(reset) - %C(green)(%cr)%C(reset) %s %C(blue)<%an>%C(reset)" \
+  --abbrev-commit
+  ```
+
+## Git config
+
+### Set preserve colors in less
+
+```shell
+git config --global core.pager "less -R"
+```
+
+## Git aliases
+
+Set an alias with `git config [--global] alias.<alias> "cmd"`.
+
+- Decorated git log graph:
+
+  ```shell
+  git config --global alias.lg "log --graph --oneline --decorate"
+  ```
+- Advanced git log:
+
+  ```shell
+  git config --global alias.lga \
+    "log --graph --pretty=format:'%C(yellow)%h%C(reset) %C(green)%ar%C(reset) %C(blue)%an%C(reset)%C(auto)%d%C(reset) %s' --abbrev-commit"
+  ```
 
 ## Troubleshooting
 
