@@ -16,6 +16,7 @@ tags: ["git", "command", "cli"]
     - [Compare against remote](#compare-against-remote)
 - [Push empty commit](#push-empty-commit)
 - [Git Log](#git-log)
+  - [Git Log Cheatsheet](#git-log-cheatsheet)
   - [Pipe commit history into less](#pipe-commit-history-into-less)
   - [Show log with ASCII graph](#show-log-with-ascii-graph)
   - [Show shortened commit hashes](#show-shortened-commit-hashes)
