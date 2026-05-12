@@ -2,7 +2,7 @@
 description: "The [Azure CLI](https://github.com/Azure/azure-cli) is a CLI tool for interacting with Microsoft Azure."
 last_updated: "{{last_update}}"
 tags: ["command", "azure", "cloud"]
-last_updated: "2026-05-07"
+last_updated: "2026-05-12"
 ---
 ## Table of Contents <!-- omit in toc -->
 
@@ -57,6 +57,12 @@ In some environments, like in WSL, you need to use `az login --use-device-code`.
   ```shell
   az ad signed-in-user show --query objectId -o tsv
   ```
+
+### Show all subscriptions
+
+```shell
+az account list --output table
+```
 
 ### Show active subscription
 
@@ -175,4 +181,3 @@ az graph query -q "Resources | project name, type, location, resourceGroup" --ou
 ## Troubleshooting
 
 ## Links
-
