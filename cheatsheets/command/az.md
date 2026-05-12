@@ -10,6 +10,7 @@ last_updated: "2026-05-12"
 - [Usage](#usage)
   - [Login](#login)
   - [User info](#user-info)
+  - [Show all subscriptions](#show-all-subscriptions)
   - [Show active subscription](#show-active-subscription)
   - [Set/change subscription](#setchange-subscription)
   - [ACR](#acr)
