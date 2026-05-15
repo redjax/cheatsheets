@@ -2,6 +2,7 @@
 description: "Rsync is a fast remote and local file-copying tool."
 last_updated: "{{last_update}}"
 tags: ["command", ]
+last_updated: "2026-05-15"
 ---
 ## Table of Contents <!-- omit in toc -->
 
@@ -34,6 +35,8 @@ Args:
 | `-z` | Compress the data |
 | `-v` | Verbose/detailed info during transfer |
 | `-h` | Human-readable output |
+| `P`  | Show progress bar |
+| `--bwlimit=<size-in-kb>` | Limit bandwidth during transfer. Size is in KB, so for MB you must do `sizeMB * 1024`. For example, to limit transfers to 10MB/s, `--bwlimit=10240` |
 
 ## Examples
 
