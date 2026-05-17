@@ -3,6 +3,16 @@ description: "[Restic](https://restic.net) is a backup/snapshotting software. It
 last_updated: "2026-05-17"
 tags: ["app", "backup", "restic"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Restic Examples](#restic-examples)
+- [Resticprofile](#resticprofile)
+  - [Resticprofile Usage](#resticprofile-usage)
+  - [Resticprofile Examples](#resticprofile-examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Restic <!-- omit in toc -->
 
