@@ -3,6 +3,15 @@ description: "[Rclone](rclone.org) is a CLI utility to manage files on cloud sto
 last_updated: "2026-05-17"
 tags: ["app", "backup", "sync", "cli"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Setup](#setup)
+  - [Install Rclone](#install-rclone)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Link](#link)
 
 # Rclone <!-- omit in toc -->
 

@@ -21,6 +21,7 @@ last_updated: "2026-05-17"
 | [Helix Editor <!-- omit in toc -->](cheatsheets/app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
 | [LNav - The Logfile Navigator <!-- omit in toc -->](cheatsheets/app/lnav.md) | [lnav](https://lnav.org/) is a logfile navigator/TUI. It is extremely versatile at parsing logs from different sources/filetypes. | app, cli, tui, logging, linux |
 | [Neovim <!-- omit in toc -->](cheatsheets/app/neovim.md) | Terminal-based IDE, next-gen Vi(m). | neovim, app, cli, tui |
+| [Rclone <!-- omit in toc -->](cheatsheets/app/rclone.md) | [Rclone](rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic. | app, backup, sync, cli |
 | [Restic <!-- omit in toc -->](cheatsheets/app/restic.md) | [Restic](https://restic.net) is a backup/snapshotting software. It works with many backends natively, and can integrate with [rclone](https://rclone.org) to sync to many more. Tools like [resticprofile](https://creativeprojects.github.io/resticprofile/) and [Backrest](https://github.com/garethgeorge/backrest) provide scheduling & management UIs. | app, backup, restic |
 | [Tmux - Terminal Multiplexer <!-- omit in toc -->](cheatsheets/app/tmux.md) | [tmux](https://github.com/tmux/tmux) is a terminal multiplexer, allowing you to split 1 terminal session into many with windows and panes. | app, cli, tui, linux |
 
