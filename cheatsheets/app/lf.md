@@ -3,6 +3,13 @@ description: "[`lf`](https://github.com/gokcehan/lf) is a TUI file manager heavi
 last_updated: "2026-05-18"
 tags: ["app", "cli", "tui", "file-management"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Lf <!-- omit in toc -->
 

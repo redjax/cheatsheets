@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-17"
+last_updated: "2026-05-18"
 ---
 
 # Cheatsheets Index
@@ -19,6 +19,7 @@ last_updated: "2026-05-17"
 | Name | Description | Tags |
 | --- | --- | --- |
 | [Helix Editor <!-- omit in toc -->](cheatsheets/app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
+| [Lf <!-- omit in toc -->](cheatsheets/app/lf.md) | [`lf`](https://github.com/gokcehan/lf) is a TUI file manager heavily inspired by `ranger`. | app, cli, tui, file-management |
 | [LNav - The Logfile Navigator <!-- omit in toc -->](cheatsheets/app/lnav.md) | [lnav](https://lnav.org/) is a logfile navigator/TUI. It is extremely versatile at parsing logs from different sources/filetypes. | app, cli, tui, logging, linux |
 | [Neovim <!-- omit in toc -->](cheatsheets/app/neovim.md) | Terminal-based IDE, next-gen Vi(m). | neovim, app, cli, tui |
 | [Rclone <!-- omit in toc -->](cheatsheets/app/rclone.md) | [Rclone](rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic. | app, backup, sync, cli |
