@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-18"
+last_updated: "2026-05-25"
 ---
 
 # Cheatsheets Index
@@ -18,6 +18,7 @@ last_updated: "2026-05-18"
 
 | Name | Description | Tags |
 | --- | --- | --- |
+| [Clamav <!-- omit in toc -->](cheatsheets/app/clamav.md) | [ClamAV](https://www.clamav.net) is an open-source antivirus engine. | app, antivirus, security |
 | [Helix Editor <!-- omit in toc -->](cheatsheets/app/helix.md) | Terminal text editor like Neovim, but with a bunch of built-in functionality instead of relying on plugins. | helix, app, cli, tui |
 | [Lf <!-- omit in toc -->](cheatsheets/app/lf.md) | [`lf`](https://github.com/gokcehan/lf) is a TUI file manager heavily inspired by `ranger`. | app, cli, tui, file-management |
 | [LNav - The Logfile Navigator <!-- omit in toc -->](cheatsheets/app/lnav.md) | [lnav](https://lnav.org/) is a logfile navigator/TUI. It is extremely versatile at parsing logs from different sources/filetypes. | app, cli, tui, logging, linux |

@@ -3,6 +3,16 @@ description: "[ClamAV](https://www.clamav.net) is an open-source antivirus engin
 last_updated: "2026-05-24"
 tags: ["app", "antivirus", "security"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Clamscan Cheatsheet](#clamscan-cheatsheet)
+  - [Freshclam Cheatsheet](#freshclam-cheatsheet)
+  - [Clamdscan Cheatsheet](#clamdscan-cheatsheet)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Clamav <!-- omit in toc -->
 
