@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-05-25"
+last_updated: "2026-05-26"
 ---
 
 # Cheatsheets Index
@@ -44,6 +44,7 @@ last_updated: "2026-05-25"
 
 | Name | Description | Tags |
 | --- | --- | --- |
+| [Go <!-- omit in toc -->](cheatsheets/language/go.md) | [Go](https://go.dev) is a programming language with a friendly developer experience & efficient binaries. | language |
 | [Python <!-- omit in toc -->](cheatsheets/language/python.md) | Python programming language. | language, python |
 
 ## system

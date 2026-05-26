@@ -4,6 +4,14 @@ last_updated: "{{last_update}}"
 tags: ["language", ]
 last_updated: "2026-05-25"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+  - [Download & install Go](#download-install-go)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Go <!-- omit in toc -->
 
