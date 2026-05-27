@@ -1,5 +1,5 @@
 ---
-description: "[Rclone](rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic."
+description: "[Rclone](https://rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic."
 last_updated: "2026-05-27"
 tags: ["app", "backup", "sync", "cli"]
 ---
