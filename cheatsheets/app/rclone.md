@@ -10,6 +10,7 @@ tags: ["app", "backup", "sync", "cli"]
   - [Install Rclone](#install-rclone)
 - [Usage](#usage)
 - [Examples](#examples)
+  - [Bandwidth limit examples](#bandwidth-limit-examples)
 - [Troubleshooting](#troubleshooting)
 - [Link](#link)
 
