@@ -10,6 +10,10 @@ tags: ["app", "backup", "sync", "cli"]
   - [Install Rclone](#install-rclone)
 - [Usage](#usage)
 - [Examples](#examples)
+  - [General usage examples](#general-usage-examples)
+  - [Common operations](#common-operations)
+  - [Rclone copy examples](#rclone-copy-examples)
+  - [Rclone sync examples](#rclone-sync-examples)
   - [Bandwidth limit examples](#bandwidth-limit-examples)
 - [Troubleshooting](#troubleshooting)
 - [Link](#link)
@@ -134,7 +138,6 @@ rclone ls remote-name:backup/path
 | `rclone copy ~/data remote:backup --filter "- *.log"` | Filter rule version of exclusion                 |
 | `rclone copy ~/data remote:backup --checksum`         | Compare using checksums instead of mod time/size |
 
-
 ### Rclone sync examples
 
 | Example                                                               | Meaning                                                               |
@@ -148,7 +151,6 @@ rclone ls remote-name:backup/path
 | `rclone sync ~/data remote:backup --update`                           | Only overwrite older files on destination                             |
 | `rclone sync ~/data remote:backup --size-only`                        | Compare only file sizes (faster, weaker consistency)                  |
 | `rclone sync ~/data remote:backup --checksum`                         | Strong verification using checksums                                   |
-
 
 ### Bandwidth limit examples
 
