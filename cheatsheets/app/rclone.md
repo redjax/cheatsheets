@@ -66,6 +66,90 @@ curl https://rclone.org/install.sh | sudo bash
 
 ## Examples
 
+### General usage examples
+
+`rclone` syntax:
+
+```shell
+rclone <command> [flags] <source> <destination>
+```
+
+Common patterns:
+
+```shell
+rclone copy   <src> <remote:dest>
+rclone sync   <src> <remote:dest>
+rclone move   <src> <remote:dest>
+
+rclone ls     <remote:path>
+rclone lsd    <remote:>
+rclone lsf    <remote:path>
+```
+
+Source and destination formats:
+
+| Type          | Example                     |
+| ------------- | --------------------------- |
+| Local path    | `~/data`, `/home/user/data` |
+| Remote root   | `remote:`                   |
+| Remote folder | `remote:backups`            |
+| Nested path   | `remote:backups/2026`       |
+
+### Common operations
+
+View/edit `rclone`'s config:
+
+```shell
+rclone config
+```
+
+Show configured remotes:
+
+```shell
+rclone listremotes
+```
+
+List the top-level directories in a remote:
+
+```shell
+rclone lsd remote-name:
+```
+
+List top-level directories in a remote starting at a given path:
+
+```shell
+rclone ls remote-name:backup/path
+```
+
+### Rclone copy examples
+
+| Example                                               | Meaning                                          |
+| ----------------------------------------------------- | ------------------------------------------------ |
+| `rclone copy ~/data remote:backup`                    | Basic upload (no deletions on destination)       |
+| `rclone copy ~/data remote:backup --progress`         | Show transfer progress                           |
+| `rclone copy ~/data remote:backup --dry-run`          | Simulate what would be copied                    |
+| `rclone copy ~/data remote:backup --ignore-existing`  | Skip files that already exist on destination     |
+| `rclone copy ~/data remote:backup --update`           | Only copy newer files (based on mod time)        |
+| `rclone copy ~/data remote:backup --exclude "*.tmp"`  | Exclude temp files                               |
+| `rclone copy ~/data remote:backup --filter "- *.log"` | Filter rule version of exclusion                 |
+| `rclone copy ~/data remote:backup --checksum`         | Compare using checksums instead of mod time/size |
+
+
+### Rclone sync examples
+
+| Example                                                               | Meaning                                                               |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `rclone sync ~/data remote:backup`                                    | Mirror local -> remote (deletes extras on destination)                 |
+| `rclone sync ~/data remote:backup --dry-run`                          | Preview destructive changes safely                                    |
+| `rclone sync ~/data remote:backup --progress`                         | Show progress during sync                                             |
+| `rclone sync ~/data remote:backup --delete-excluded`                  | Delete files that match exclude rules                                 |
+| `rclone sync ~/data remote:backup --exclude "*.tmp"`                  | Exclude files and remove excluded ones from destination               |
+| `rclone sync ~/data remote:backup --backup-dir remote:backup-archive` | Move overwritten/deleted files into backup folder instead of deleting |
+| `rclone sync ~/data remote:backup --update`                           | Only overwrite older files on destination                             |
+| `rclone sync ~/data remote:backup --size-only`                        | Compare only file sizes (faster, weaker consistency)                  |
+| `rclone sync ~/data remote:backup --checksum`                         | Strong verification using checksums                                   |
+
+
 ### Bandwidth limit examples
 
 | Example | Meaning |
