@@ -1,6 +1,6 @@
 ---
 description: "[Rclone](rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic."
-last_updated: "2026-05-17"
+last_updated: "2026-05-27"
 tags: ["app", "backup", "sync", "cli"]
 ---
 ## Table of Contents <!-- omit in toc -->
@@ -56,13 +56,23 @@ curl https://rclone.org/install.sh | sudo bash
 | `--dry-run`                            | Simulate operation without making changes                             |
 | `--verbose`                            | Show detailed output (same family as `-v`)                            |
 | `--progress`                           | Show transfer progress                                                |
-| `--bwlimit <rate>`                     | Limit bandwidth usage                                                 |
+| `--bwlimit <rate>`                     | Limit bandwidth usage. Supports formats like `10M`, `1M:08:00,10M:17:00` (different limits per time), `on`/`off`, or burst-style limits like `1M:off` |
 | `--transfers N`                        | Number of concurrent file transfers                                   |
 | `--delete-during`                      | Delete files during sync (faster, less space used)                    |
 | `--log-file <file>`                    | Write logs to a file instead of stdout                                |
 | `--stats 5s`                           | Print periodic transfer stats every interval                          |
+| `ncdu <remote:path>` | Interactive disk usage explorer |
 
 ## Examples
+
+### Bandwidth limit examples
+
+| Example | Meaning |
+|--------|--------|
+| `--bwlimit 10M` | Limit to 10 MB/s always |
+| `--bwlimit 1M:08:00,10M:17:00` | 1 MB/s during work hours, 10 MB/s after 5pm |
+| `--bwlimit 1M:off` | 1 MB/s during transfers, unlimited at other times |
+| `--bwlimit off` | No bandwidth limit |
 
 ## Troubleshooting
 
