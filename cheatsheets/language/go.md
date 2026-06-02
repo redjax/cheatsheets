@@ -8,6 +8,7 @@ last_updated: "2026-06-02"
 
 - [About](#about)
   - [Download & install Go](#download-install-go)
+  - [Update all packages in current module](#update-all-packages-in-current-module)
 - [Usage](#usage)
 - [Examples](#examples)
 - [Troubleshooting](#troubleshooting)
