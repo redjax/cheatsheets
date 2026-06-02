@@ -2,7 +2,7 @@
 description: "[Go](https://go.dev) is a programming language with a friendly developer experience & efficient binaries."
 last_updated: "{{last_update}}"
 tags: ["language", ]
-last_updated: "2026-05-25"
+last_updated: "2026-06-02"
 ---
 ## Table of Contents <!-- omit in toc -->
 
@@ -27,6 +27,13 @@ The `/VERSION` endpoint can be scripted, too, i.e. to install Go on a 64-bit Lin
 
 ```shell
 wget "https://go.dev/dl/$(curl 'https://go.dev/VERSION?m=text').linux-amd64.tar.gz" && sudo rm -rf /usr/local/go && sudo tar -C /usr/local -xzf go*.linux-amd64.tar.gz
+```
+
+### Update all packages in current module
+
+```shell
+go get -u ./...
+go mod tidy
 ```
 
 ## Usage
