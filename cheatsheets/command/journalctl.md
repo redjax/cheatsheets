@@ -4,6 +4,13 @@ last_updated: "{{last_update}}"
 tags: ["command", "linux", "systemd", "journalctl"]
 last_updated: "2026-06-09"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Journalctl <!-- omit in toc -->
 
