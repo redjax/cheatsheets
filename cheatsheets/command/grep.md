@@ -9,6 +9,7 @@ last_updated: "2026-07-15"
 - [About](#about)
 - [Usage](#usage)
 - [Examples](#examples)
+  - [Print filename matches](#print-filename-matches)
 - [Troubleshooting](#troubleshooting)
 - [Links](#links)
 
