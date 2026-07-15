@@ -2,13 +2,14 @@
 description: "Grep is used to find text in a file or files within a directory path."
 last_updated: "{{last_update}}"
 tags: ["command", "cli"]
-last_updated: "2026-05-06"
+last_updated: "2026-07-15"
 ---
 ## Table of Contents <!-- omit in toc -->
 
 - [About](#about)
 - [Usage](#usage)
 - [Examples](#examples)
+  - [Print filename matches](#print-filename-matches)
 - [Troubleshooting](#troubleshooting)
 - [Links](#links)
 
@@ -49,7 +50,14 @@ grep [OPTIONS] "search_string" [path/to/search]
 
 ## Examples
 
+### Print filename matches
+
+Hide matched string and only show filename:
+
+```shell
+grep -rl "search text" .
+```
+
 ## Troubleshooting
 
 ## Links
-
