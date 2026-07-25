@@ -1,6 +1,6 @@
 ---
 description: "Version control system."
-last_updated: "2026-05-08"
+last_updated: "2026-07-25"
 tags: ["git", "command", "cli"]
 ---
 
@@ -143,6 +143,7 @@ There are many other options for the `git log` command, detailed below in specif
 | Limit to one branch only | `git log --first-parent` |
 | Show commits touching a directory | `git log -- src/components/` |
 | Show one commit per author summary | `git shortlog -sne` |
+| Show history & changes for a specific file | `git log -p -- path/to/filename.ext` |
 
 ### Pipe commit history into less
 
@@ -223,12 +224,12 @@ git log -3
 
 - Filter by date:
   - Commits after a specific date:
-  
+
     ```shell
     git log --after="2014-07-01"
     ```
   - Relative dates:
-  
+
     ```shell
     git log --after="yesterday"
     git log --after="2 weeks ago"
@@ -245,7 +246,7 @@ git log -3
     ```
 - Filter by author:
   - Single author by name/email:
-    
+
     ```shell
     git log --author="John"
     git log --author="john@example.com"
@@ -438,7 +439,7 @@ These tables are cheatsheets for the `git log --pretty=format:"..."` functionali
   git log --pretty=format:"%C(yellow)%h%C(reset) %C(green)%ar%C(reset) %C(blue)%an%C(reset) %s"
   ```
   - Example:
-    
+
     ```shell
     8f3c1a2 2 days ago John Smith Fix parsing bug
     ```
@@ -448,7 +449,7 @@ These tables are cheatsheets for the `git log --pretty=format:"..."` functionali
   git log --pretty=format:"Commit: %h%nAuthor: %an%nDate: %ar%n%n%s%n"
   ```
 - Graph + pretty format
-  
+
   ```shell
   git log --graph \
   --pretty=format:"%C(yellow)%h%C(reset) - %C(green)(%cr)%C(reset) %s %C(blue)<%an>%C(reset)" \
