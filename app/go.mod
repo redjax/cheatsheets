@@ -4,16 +4,16 @@ go 1.25.3
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/charmbracelet/bubbles v1.0.0
-	github.com/charmbracelet/bubbletea v1.3.10
-	github.com/charmbracelet/glamour v1.0.0
-	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834
+	github.com/charmbracelet/bubbles/v2 v2.1.1
+	github.com/charmbracelet/bubbletea/v2 v2.0.9
+	github.com/charmbracelet/glamour/v2 v2.0.1
+	github.com/charmbracelet/lipgloss/v2 v2.0.6
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/knadh/koanf/parsers/dotenv v1.1.2
 	github.com/knadh/koanf/parsers/json v1.0.1
-	github.com/knadh/koanf/parsers/toml v0.1.0
+	github.com/knadh/koanf/parsers/toml/v2 v2.2.2
 	github.com/knadh/koanf/parsers/yaml v1.1.1
-	github.com/knadh/koanf/providers/env v1.1.0
+	github.com/knadh/koanf/providers/env/v2 v2.0.1
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/providers/posflag v1.0.2
 	github.com/knadh/koanf/v2 v2.3.6
