@@ -9,6 +9,24 @@ tags:
   - "container"
   - "orchestration"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [Usage](#usage)
+  - [Cluster and context commands](#cluster-and-context-commands)
+  - [Namespace commands](#namespace-commands)
+  - [Resource commands](#resource-commands)
+  - [Pod commands](#pod-commands)
+  - [Deployment commands](#deployment-commands)
+  - [Service and networking commands](#service-and-networking-commands)
+  - [Apply and delete commands](#apply-and-delete-commands)
+  - [Events and troubleshooting commands](#events-and-troubleshooting-commands)
+  - [Node commands](#node-commands)
+- [Examples](#examples)
+  - [Inspect a workload](#inspect-a-workload)
+  - [Debug a failing pod](#debug-a-failing-pod)
+  - [Drain a node for maintenance](#drain-a-node-for-maintenance)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Kubectl <!-- omit in toc -->
 
@@ -51,7 +69,6 @@ kubectl [command] [TYPE] [NAME] [flags]
 | `kubectl get all -n [namespace]`       | List common resources in a namespace          |
 
 ### Resource commands
-
 
 | Command                                            | Description                                   |
 | -------------------------------------------------- | --------------------------------------------- |

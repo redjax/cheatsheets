@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-08-08"
+last_updated: "2026-08-28"
 ---
 
 # Cheatsheets Index
@@ -37,6 +37,7 @@ last_updated: "2026-08-08"
 | [Git <!-- omit in toc -->](cheatsheets/command/git.md) | Version control system. | git, command, cli |
 | [Grep <!-- omit in toc -->](cheatsheets/command/grep.md) | Grep is used to find text in a file or files within a directory path. | command, cli |
 | [Journalctl <!-- omit in toc -->](cheatsheets/command/journalctl.md) | CLI controller for systemd-journal. | command, linux, systemd, journalctl |
+| [Kubectl <!-- omit in toc -->](cheatsheets/command/kubectl.md) | Kubectl is a tool for running commands against Kubernetes clusters. | kubectl, command, kubernetes, cli, container, orchestration |
 | [Rsync <!-- omit in toc -->](cheatsheets/command/rsync.md) | Rsync is a fast remote and local file-copying tool. | command |
 | [Scoop <!-- omit in toc -->](cheatsheets/command/scoop.md) | Scoop is a userland package manager for Windows, similar to Homebrew. | command, package_management windows |
 | [Windows Subsystem for Linux (WSL) <!-- omit in toc -->](cheatsheets/command/wsl.md) | WSL is the Windows CLI package manager, like apt on Ubuntu or DNF on Fedora. | command, windows, wsl |
