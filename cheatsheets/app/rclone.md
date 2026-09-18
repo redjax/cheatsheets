@@ -1,6 +1,6 @@
 ---
 description: "[Rclone](https://rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic."
-last_updated: "2026-05-27"
+last_updated: "2026-09-17"
 tags: ["app", "backup", "sync", "cli"]
 ---
 ## Table of Contents <!-- omit in toc -->
@@ -67,6 +67,15 @@ curl https://rclone.org/install.sh | sudo bash
 | `--log-file <file>`                    | Write logs to a file instead of stdout                                |
 | `--stats 5s`                           | Print periodic transfer stats every interval                          |
 | `ncdu <remote:path>` | Interactive disk usage explorer |
+| `--include "PATTERN"` | Include files by pattern. |
+| `--exclude "PATTERN"` | Exclude files by pattern. |
+| `--filter "+ PATTERN"` | Include files by filter rule. |
+| `--filter "- PATTERN"` | Exclude files by filter rule. |
+| `--filters-from /path/to/filters_file` | Read and use filter rules defined in a file. |
+| `--max-size SIZE` | Skip files larger than `SIZE`. Include a size indicator, i.e. `B` `K` `M` `G` `T` or `P` for bytes, kilobytes, megabytes, gigabytes, terabytes, and petabytes. |
+| `--min-size SIZE` | Skip files smaller than `SIZE`. |
+| `--max-age AGE` | Skip files older than `AGE`. Use an [rclone time option](https://rclone.org/docs/#time-options), i.e. `ms` `s` `m` `h` `d` `w` `M` `y` for milliseconds, seconds, minutes, hours, days, weeks, months, and years. |
+| `--min-age AGE` | Skip files newer than `AGE`. |
 
 ## Examples
 
