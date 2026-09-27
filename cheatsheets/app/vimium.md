@@ -24,6 +24,7 @@ tags: ["app", ]
 
 | Keybind | Action |
 | ------- | ------ |
+| `?` | Show help |
 | `j`     | Scroll down |
 | `k`     | Scroll up   |
 | `gg` | Scroll to the top of the page |
@@ -56,7 +57,11 @@ tags: ["app", ]
 | `yt` | Duplicate current tab |
 | `x` | Close current tab |
 | `X` | Restore closed tab |
-| `?` | Show help |
+| `o` | Open URL, bookmark, or history entry |
+| `O` | Open URL, bookmark, or history entry in a new tab |
+| `b` | Open a bookmark |
+| `B` | Open a bookmark in a new tab |
+| `T` | Search through open tabs |
 
 ## Examples
 
