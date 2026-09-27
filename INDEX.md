@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-09-18"
+last_updated: "2026-09-27"
 ---
 
 # Cheatsheets Index
@@ -26,6 +26,7 @@ last_updated: "2026-09-18"
 | [Rclone <!-- omit in toc -->](cheatsheets/app/rclone.md) | [Rclone](https://rclone.org) is a CLI utility to manage files on cloud storage. It can interact with [over 70 cloud storage products](https://rclone.org/#providers), and can act as a bridge for tools like Restic. | app, backup, sync, cli |
 | [Restic <!-- omit in toc -->](cheatsheets/app/restic.md) | [Restic](https://restic.net) is a backup/snapshotting software. It works with many backends natively, and can integrate with [rclone](https://rclone.org) to sync to many more. Tools like [resticprofile](https://creativeprojects.github.io/resticprofile/) and [Backrest](https://github.com/garethgeorge/backrest) provide scheduling & management UIs. | app, backup, restic |
 | [Tmux - Terminal Multiplexer <!-- omit in toc -->](cheatsheets/app/tmux.md) | [tmux](https://github.com/tmux/tmux) is a terminal multiplexer, allowing you to split 1 terminal session into many with windows and panes. | app, cli, tui, linux |
+| [Vimium Browser Extension <!-- omit in toc -->](cheatsheets/app/vimium.md) | [Vimium](https://vimium.github.io) is a browser extension that adds Vim-like navigation keybinds to your browser. | app |
 
 ## command
 

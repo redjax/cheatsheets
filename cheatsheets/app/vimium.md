@@ -3,6 +3,14 @@ description: "[Vimium](https://vimium.github.io) is a browser extension that add
 last_updated: "2026-09-27"
 tags: ["app", ]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Cheatsheet](#cheatsheet)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Vimium Browser Extension <!-- omit in toc -->
 
