@@ -4,6 +4,14 @@ last_updated: "{{last_update}}"
 tags: ["command", ]
 last_updated: "2026-10-08"
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Atd <!-- omit in toc -->
 

@@ -1,6 +1,6 @@
 ---
 description: "Index of cheatsheets grouped by folders"
-last_updated: "2026-09-27"
+last_updated: "2026-10-08"
 ---
 
 # Cheatsheets Index
@@ -32,6 +32,7 @@ last_updated: "2026-09-27"
 
 | Name | Description | Tags |
 | --- | --- | --- |
+| [Atd <!-- omit in toc -->](cheatsheets/command/atd.md) |  | command |
 | [Azure CLI <!-- omit in toc -->](cheatsheets/command/az.md) | The [Azure CLI](https://github.com/Azure/azure-cli) is a CLI tool for interacting with Microsoft Azure. | command, azure, cloud |
 | [cURL <!-- omit in toc -->](cheatsheets/command/curl.md) | cURL is a tool for transferring data to or from a server using URLs. It is a terminal-based HTTP client with powerful capabilities. | command, command, curl, http |
 | [Flatpak <!-- omit in toc -->](cheatsheets/command/flatpak.md) | [Flatpak](https://flatpak.org) runs applications in sandboxed environments. | command, flatpak, linux |
