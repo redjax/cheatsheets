@@ -48,3 +48,5 @@ jobs:
       release-prefix: "cheatsheets-site"
       # publish-targets: '["github-pages"]'
       publish-targets: "[]"
+    secrets:
+      release-bot-pat: ${{ secrets.RELEASE_BOT_PAT }}
