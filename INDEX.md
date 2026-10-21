@@ -14,6 +14,10 @@ last_updated: "2026-10-21"
 - [language](#language)
 - [system](#system)
 
+| Name | Description | Tags |
+| --- | --- | --- |
+| [Home](cheatsheets/index.md) | Cheatsheets home |  |
+
 ## app
 
 | Name | Description | Tags |
