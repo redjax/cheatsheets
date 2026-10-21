@@ -3,6 +3,13 @@ description: "[tig](https://github.com/jonas/tig) is a text-mode CLI for git. Un
 last_updated: "2026-10-21"
 tags: ["app", "git", "cli"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Tig <!-- omit in toc -->
 
