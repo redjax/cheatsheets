@@ -1,0 +1,5 @@
+/site/
+/.site-src/
+/.cache/
+/.venv/
+__pycache__/

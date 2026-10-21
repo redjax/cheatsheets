@@ -1,0 +1,47 @@
+---
+name: Build, release, and publish cheatsheets site
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "cheatsheets/**"
+      - "zensical.toml"
+      - "zensical/pyproject.toml"
+      - "zensical/uv.lock"
+      - ".github/workflows/zensical-site.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+  pull-requests: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: cheatsheets-zensical-site
+  cancel-in-progress: false
+
+jobs:
+  site:
+    name: Build, release, and publish
+    uses: redjax/PipelineTemplates/.github/workflows/zensical-site-main.yml@main
+    with:
+      working-directory: "."
+      python-project-dir: "zensical"
+      zensical-config: "zensical.toml"
+      docs-dir: "cheatsheets"
+      output-dir: "zensical/site"
+      versioned: false
+      check-changed: false
+      clean: true
+      strict: false
+      artifact-name: "cheatsheets-zensical-site"
+      create-github-release: true
+      release-prefix: "cheatsheets-site"
+      publish-targets: '["github-pages"]'
+    secrets:
+      release-bot-pat: ${{ secrets.RELEASE_BOT_PAT }}
