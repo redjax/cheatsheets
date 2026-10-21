@@ -3,6 +3,13 @@ description: "[Gitu](https://github.com/altsem/gitu) is a TUI for Git porcelain 
 last_updated: "2026-10-21"
 tags: ["app", "git", "tui"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Gitu <!-- omit in toc -->
 
