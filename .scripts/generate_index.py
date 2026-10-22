@@ -243,6 +243,9 @@ def build_tree(
     for p in root.rglob("*.md"):
         rel = p.relative_to(root)
 
+        if rel == Path("index.md"):
+            continue
+
         ## Exclude files
         name = rel.name
 

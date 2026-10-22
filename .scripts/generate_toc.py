@@ -28,6 +28,10 @@ FRONT_MATTER_START = re.compile(r"^\s*---\s*$")
 ## Regex to find end of frontmatter (--- at the end of frontmatter)
 FRONT_MATTER_END = re.compile(r"^\s*---\s*$")
 
+HOMEPAGE_PATH = (
+    Path(__file__).resolve().parent.parent / "cheatsheets" / "index.md"
+).resolve()
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
@@ -365,6 +369,10 @@ def main():
 
     ## Process each markdown file
     for md in targets:
+        if md.resolve() == HOMEPAGE_PATH:
+            print(f"skipped homepage: {md}")
+            continue
+
         ## Process the file to update ToC
         changed, old_text, new_text = process_file(
             md, args.min_level, args.max_level, args.heading_text
