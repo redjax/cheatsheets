@@ -7,12 +7,12 @@ on:
     branches:
       - main
     paths:
-      - 'cheatsheets/**/*.md'
+      - "cheatsheets/**/*.md"
   pull_request:
     branches:
       - main
     paths:
-      - 'cheatsheets/**/*.md'
+      - "cheatsheets/**/*.md"
 
 permissions:
   contents: write
@@ -20,19 +20,19 @@ permissions:
 jobs:
   update-docs:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
           ref: ${{ github.head_ref || github.ref_name }}
-          fetch-depth: 2  # Need at least 2 commits to compare
-          
+          fetch-depth: 2 # Need at least 2 commits to compare
+
       - name: Set up Python
         uses: actions/setup-python@v7
         with:
-          python-version: '3.14'
-          
+          python-version: "3.14"
+
       - name: Check for new and modified cheatsheets
         id: check_changes
         run: |
@@ -43,7 +43,7 @@ jobs:
             echo "Manual trigger - processing all cheatsheets"
             exit 0
           fi
-          
+
           ## Check if this is the first commit
           if git rev-parse HEAD^ >/dev/null 2>&1; then
             # Get list of added markdown files in cheatsheets/
@@ -81,19 +81,19 @@ jobs:
               echo "No cheatsheets found"
             fi
           fi
-          
+
       - name: Generate index
         if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
         run: |
           python .scripts/generate_index.py
           echo "Generated INDEX.md"
-          
+
       - name: Generate TOC for all cheatsheets
         if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
         run: |
           python .scripts/generate_toc.py --write cheatsheets/
           echo "Updated TOC in all cheatsheets"
-          
+
       - name: Check for changes
         if: steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true'
         id: check_git_changes
@@ -105,16 +105,19 @@ jobs:
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "Changes detected"
           fi
-          
+
       - name: Commit and push changes
         if: (steps.check_changes.outputs.new_files == 'true' || steps.check_changes.outputs.modified_files == 'true') && steps.check_git_changes.outputs.has_changes == 'true'
+        env:
+          TARGET_BRANCH: ${{ github.head_ref || github.ref_name }}
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+
           git add INDEX.md cheatsheets/
-          git commit -m "chore: auto-update index and TOC [skip ci]"
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
-          
+          git commit -m "chore: auto-update index and TOC"
+          git push origin "HEAD:${TARGET_BRANCH}"
+
       - name: Skip - No changes detected
         if: steps.check_changes.outputs.new_files == 'false' && steps.check_changes.outputs.modified_files == 'false'
         run: |
