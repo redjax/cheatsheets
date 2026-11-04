@@ -10,12 +10,12 @@ Cheatsheets are in Markdown format, and can be used cross-platform, version cont
 - [Setup](#setup)
 - [CLI Tool](#cli-tool)
 - [Install CLI](#install-cli)
-    - [Quick Install (recommended)](#quick-install-recommended)
-    - [Manual Install](#manual-install)
+  - [Quick Install (recommended)](#quick-install-recommended)
+  - [Manual Install](#manual-install)
   - [Build from source](#build-from-source)
-  - [Configuration](#configuration)
-  - [Usage](#usage)
-  - [Git Workflow](#git-workflow)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Git Workflow](#git-workflow)
 
 ## Index
 
@@ -45,7 +45,7 @@ You can `cd` to the `chtsht`-managed repository using `chtsht cd`, and synchroni
 
 ## Install CLI
 
-#### Quick Install (recommended)
+### Quick Install (recommended)
 
 - Linux / macOS (bash):
 
@@ -67,7 +67,7 @@ The install script downloads the latest release from GitHub and installs to:
 - Linux / macOS: `~/.local/bin/chtsht`
 - Windows: `%LOCALAPPDATA%\chtsht\chtsht.exe` (added to user PATH automatically)
 
-#### Manual Install
+### Manual Install
 
 Check the [releases page](https://github.com/redjax/cheatsheets/releases), look for releases with `v0.0.0` tags (the Go app). Cheatsheet releases are tagged like `Cheatsheets <date>-<shorthash>`.
 
@@ -81,7 +81,7 @@ go build -o chtsht ./cmd/chtsht/
 # Move the chtsht binary to a location on your $PATH or use ./chtsht
 ```
 
-### Configuration
+## Configuration
 
 Copy `config.yml` to `config.local.yml` and edit with your settings:
 
@@ -93,7 +93,7 @@ git:
   working_branch: "working"
 ```
 
-### Usage
+## Usage
 
 > [!NOTE]
 > Use `chtsht -h` to see help menu
@@ -123,7 +123,7 @@ Delete cheatsheet:
 chtsht delete app/helix
 ```
 
-### Git Workflow
+## Git Workflow
 
 The tool uses a working branch workflow. Edit on the `working` branch, merge to `main` when ready.
 
