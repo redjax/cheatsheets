@@ -3,6 +3,29 @@ description: "[Homebrew](https://brew.sh) is a cross-platform package and depend
 last_updated: "2026-11-04"
 tags: ["app", "homebrew", "brew", "linux", "unix", "macos", "package-management"]
 ---
+## Table of Contents <!-- omit in toc -->
+
+- [About](#about)
+- [Usage](#usage)
+  - [Finding and inspecting packages](#finding-and-inspecting-packages)
+  - [Installing and removing packages](#installing-and-removing-packages)
+  - [Updating and maintenance](#updating-and-maintenance)
+  - [Dependencies and taps](#dependencies-and-taps)
+  - [Services](#services)
+  - [Paths and diagnostics](#paths-and-diagnostics)
+  - [Brewfiles and Bundle](#brewfiles-and-bundle)
+    - [Dumping installed packages](#dumping-installed-packages)
+    - [Restoring and checking packages](#restoring-and-checking-packages)
+    - [Removing packages not in a Brewfile](#removing-packages-not-in-a-brewfile)
+- [Examples](#examples)
+  - [Routine maintenance](#routine-maintenance)
+  - [Dump installed packages to a Brewfile](#dump-installed-packages-to-a-brewfile)
+  - [Restore packages from a Brewfile](#restore-packages-from-a-brewfile)
+  - [Keep a Brewfile in a dotfiles repository](#keep-a-brewfile-in-a-dotfiles-repository)
+  - [Write a Brewfile manually](#write-a-brewfile-manually)
+  - [Run commands with Brewfile dependencies](#run-commands-with-brewfile-dependencies)
+- [Troubleshooting](#troubleshooting)
+- [Links](#links)
 
 # Homebrew <!-- omit in toc -->
 
